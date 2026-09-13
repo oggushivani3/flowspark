@@ -1,0 +1,2814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowSpark - AI Prompt to Colorful Flowchart Generator</title>
+  
+  <!-- SEO & Meta -->
+  <meta name="description" content="Turn your text prompts into vibrant, interactive flowcharts instantly. Customize nodes, switch themes, and export to PNG or SVG.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome / Lucide SVG Icons via CDN CDNJS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM & THEMES
+       ========================================================================== */
+    :root {
+      /* Typography */
+      --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      /* Active Theme Variables (Default: Vibrant Spark) */
+      --bg-app: #090d16;
+      --bg-sidebar: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --bg-card-hover: rgba(51, 65, 85, 0.8);
+      --border-card: rgba(255, 255, 255, 0.1);
+      --border-active: #6366f1;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      /* Grid Dots */
+      --grid-dot-color: rgba(255, 255, 255, 0.08);
+      --canvas-bg: #090d16;
+      
+      /* Default Accent Colors */
+      --accent-primary: #6366f1;
+      --accent-primary-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.35);
+      
+      /* Node Theme Palette (Vibrant Spark) */
+      --node-start-bg: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+      --node-start-border: #38bdf8;
+      --node-start-text: #ffffff;
+      
+      --node-process-bg: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      --node-process-border: #64748b;
+      --node-process-text: #f8fafc;
+      
+      --node-decision-bg: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
+      --node-decision-border: #e879f9;
+      --node-decision-text: #ffffff;
+      
+      --node-output-bg: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+      --node-output-border: #fbbf24;
+      --node-output-text: #ffffff;
+      
+      --node-end-bg: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%);
+      --node-end-border: #fda4af;
+      --node-end-text: #ffffff;
+
+      --arrow-color: #64748b;
+      --arrow-active: #38bdf8;
+      
+      /* Shadows & Effects */
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.6);
+      --shadow-glow: 0 0 20px var(--accent-glow);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+    }
+
+    /* THEME PRESETS */
+    [data-theme="cyberpunk"] {
+      --bg-app: #05050a;
+      --bg-sidebar: #0b0c14;
+      --bg-card: rgba(18, 18, 30, 0.85);
+      --canvas-bg: #05050a;
+      --grid-dot-color: rgba(0, 240, 255, 0.12);
+      
+      --node-start-bg: linear-gradient(135deg, #00f0ff 0%, #00a8ff 100%);
+      --node-start-border: #00f0ff;
+      
+      --node-process-bg: linear-gradient(135deg, #121324 0%, #1a1c38 100%);
+      --node-process-border: #ff0055;
+      
+      --node-decision-bg: linear-gradient(135deg, #ff007f 0%, #b000ff 100%);
+      --node-decision-border: #ff00cc;
+      
+      --node-output-bg: linear-gradient(135deg, #ffe600 0%, #ff9900 100%);
+      --node-output-border: #ffe600;
+      
+      --node-end-bg: linear-gradient(135deg, #ff003c 0%, #ff5500 100%);
+      --node-end-border: #ff0055;
+
+      --arrow-color: #ff007f;
+      --arrow-active: #00f0ff;
+    }
+
+    [data-theme="pastel"] {
+      --bg-app: #12131f;
+      --bg-sidebar: #18192a;
+      --bg-card: rgba(32, 34, 54, 0.7);
+      --canvas-bg: #12131f;
+      --grid-dot-color: rgba(255, 255, 255, 0.08);
+
+      --node-start-bg: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      --node-start-border: #6ee7b7;
+      
+      --node-process-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      --node-process-border: #93c5fd;
+      
+      --node-decision-bg: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+      --node-decision-border: #d8b4fe;
+      
+      --node-output-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --node-output-border: #fde68a;
+      
+      --node-end-bg: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      --node-end-border: #fca5a5;
+
+      --arrow-color: #94a3b8;
+      --arrow-active: #a855f7;
+    }
+
+    [data-theme="dark-obsidian"] {
+      --bg-app: #08090c;
+      --bg-sidebar: #0f1117;
+      --bg-card: rgba(22, 26, 36, 0.8);
+      --canvas-bg: #08090c;
+      --grid-dot-color: rgba(255, 255, 255, 0.05);
+
+      --node-start-bg: linear-gradient(135deg, #059669 0%, #047857 100%);
+      --node-start-border: #10b981;
+      
+      --node-process-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      --node-process-border: #4b5563;
+      
+      --node-decision-bg: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+      --node-decision-border: #8b5cf6;
+      
+      --node-output-bg: linear-gradient(135deg, #b45309 0%, #78350f 100%);
+      --node-output-border: #f59e0b;
+      
+      --node-end-bg: linear-gradient(135deg, #be123c 0%, #881337 100%);
+      --node-end-border: #f43f5e;
+
+      --arrow-color: #4b5563;
+      --arrow-active: #8b5cf6;
+    }
+
+    [data-theme="sunset"] {
+      --bg-app: #140a16;
+      --bg-sidebar: #1d1022;
+      --bg-card: rgba(40, 20, 48, 0.7);
+      --canvas-bg: #140a16;
+      --grid-dot-color: rgba(255, 120, 150, 0.1);
+
+      --node-start-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --node-start-border: #fbbf24;
+      
+      --node-process-bg: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+      --node-process-border: #fdba74;
+      
+      --node-decision-bg: linear-gradient(135deg, #c026d3 0%, #9333ea 100%);
+      --node-decision-border: #f0abfc;
+      
+      --node-output-bg: linear-gradient(135deg, #db2777 0%, #be185d 100%);
+      --node-output-border: #fbcfe8;
+      
+      --node-end-bg: linear-gradient(135deg, #e11d48 0%, #9f1239 100%);
+      --node-end-border: #fecdd3;
+
+      --arrow-color: #c026d3;
+      --arrow-active: #fbbf24;
+    }
+
+    [data-theme="emerald"] {
+      --bg-app: #061412;
+      --bg-sidebar: #0c201d;
+      --bg-card: rgba(15, 42, 38, 0.75);
+      --canvas-bg: #061412;
+      --grid-dot-color: rgba(16, 185, 129, 0.12);
+
+      --node-start-bg: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --node-start-border: #34d399;
+      
+      --node-process-bg: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      --node-process-border: #38bdf8;
+      
+      --node-decision-bg: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      --node-decision-border: #2dd4bf;
+      
+      --node-output-bg: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      --node-output-border: #fbbf24;
+      
+      --node-end-bg: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+      --node-end-border: #fb7185;
+
+      --arrow-color: #0d9488;
+      --arrow-active: #34d399;
+    }
+
+    /* GLOBAL RESET & BASE STYLES */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TYPOGRAPHY HELPERS */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* BUTTONS & INPUTS */
+    button {
+      font-family: var(--font-body);
+      cursor: pointer;
+      border: none;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    input, textarea, select {
+      font-family: var(--font-body);
+      outline: none;
+      border: 1px solid var(--border-card);
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* ==========================================================================
+       APP HEADER / NAVBAR
+       ========================================================================== */
+    .app-header {
+      height: 64px;
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-card);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.2rem;
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.5);
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      -webkit-text-fill-color: initial;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .btn-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .btn-icon:hover, .btn-icon.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+
+    .btn-secondary {
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      box-shadow: 0 6px 20px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .theme-select-wrapper {
+      position: relative;
+    }
+
+    .theme-select {
+      padding: 8px 12px 8px 32px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      appearance: none;
+    }
+
+    .theme-icon-indicator {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a855f7;
+      pointer-events: none;
+      font-size: 0.85rem;
+    }
+
+    /* ==========================================================================
+       MAIN APP WORKSPACE LAYOUT
+       ========================================================================== */
+    .app-workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* SIDEBAR (Prompt & Controls) */
+    .app-sidebar {
+      width: 360px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-card);
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-card);
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 14px;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+    }
+
+    .tab-btn.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .sidebar-content::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-full);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prompt-box-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .prompt-textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      resize: none;
+      background: rgba(15, 23, 42, 0.8);
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .btn-generate {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-generate:hover {
+      box-shadow: 0 6px 28px rgba(139, 92, 246, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .btn-generate::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+      transform: rotate(30deg);
+      transition: all 0.6s ease;
+      opacity: 0;
+    }
+
+    .btn-generate:hover::after {
+      opacity: 1;
+      left: 100%;
+    }
+
+    /* EXAMPLE CHIPS */
+    .example-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-full);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .chip:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: var(--text-main);
+    }
+
+    /* INSPECTOR PANEL */
+    .inspector-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-input {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .node-type-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .type-btn {
+      padding: 8px 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      justify-content: flex-start;
+    }
+
+    .type-btn.active {
+      border-color: var(--accent-primary);
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--text-main);
+    }
+
+    .action-button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       CANVAS AREA (Interactive SVG & HTML Overlay)
+       ========================================================================== */
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background-color: var(--canvas-bg);
+      background-image: radial-gradient(var(--grid-dot-color) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .canvas-container.panning {
+      cursor: grabbing;
+    }
+
+    .flow-viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform-origin: 0 0;
+      transition: transform 0.05s linear;
+    }
+
+    /* SVG CONNECTOR LAYER */
+    .connector-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5000px;
+      height: 5000px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .connector-path {
+      stroke: var(--arrow-color);
+      stroke-width: 2.5px;
+      fill: none;
+      transition: stroke 0.3s ease;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .connector-path.active {
+      stroke: var(--arrow-active);
+      stroke-width: 3px;
+    }
+
+    .connector-label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      fill: var(--text-muted);
+      text-anchor: middle;
+      paint-order: stroke;
+      stroke: var(--canvas-bg);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+    }
+
+    /* HTML NODES OVERLAY */
+    .nodes-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5000px;
+      height: 5000px;
+      z-index: 20;
+    }
+
+    .flow-node {
+      position: absolute;
+      min-width: 180px;
+      max-width: 260px;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      cursor: move;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .flow-node:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .flow-node.selected {
+      box-shadow: 0 0 0 3px var(--accent-primary), 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-color: #ffffff !important;
+      z-index: 40 !important;
+    }
+
+    /* NODE SHAPES & TYPES */
+    .node-type-start, .node-type-end {
+      background: var(--node-start-bg);
+      border-color: var(--node-start-border);
+      color: var(--node-start-text);
+      border-radius: var(--radius-full);
+      text-align: center;
+      align-items: center;
+      padding: 12px 24px;
+    }
+
+    .node-type-end {
+      background: var(--node-end-bg);
+      border-color: var(--node-end-border);
+      color: var(--node-end-text);
+    }
+
+    .node-type-process {
+      background: var(--node-process-bg);
+      border-color: var(--node-process-border);
+      color: var(--node-process-text);
+    }
+
+    .node-type-decision {
+      background: var(--node-decision-bg);
+      border-color: var(--node-decision-border);
+      color: var(--node-decision-text);
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      min-width: 200px;
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px 32px;
+    }
+
+    .node-type-output {
+      background: var(--node-output-bg);
+      border-color: var(--node-output-border);
+      color: var(--node-output-text);
+      transform: skewX(-8deg);
+    }
+
+    .node-type-output > * {
+      transform: skewX(8deg);
+    }
+
+    .node-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .node-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.25);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .node-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.3;
+      user-select: text;
+      -webkit-user-select: text;
+      word-break: break-word;
+    }
+
+    .node-desc {
+      font-size: 0.78rem;
+      opacity: 0.85;
+      line-height: 1.4;
+      user-select: text;
+      -webkit-user-select: text;
+      word-break: break-word;
+    }
+
+    /* NODE QUICK HOVER CONTROLS */
+    .node-quick-actions {
+      position: absolute;
+      top: -36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      background: #0f172a;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      gap: 4px;
+      box-shadow: var(--shadow-md);
+      z-index: 50;
+    }
+
+    .flow-node:hover .node-quick-actions,
+    .flow-node.selected .node-quick-actions {
+      display: flex;
+    }
+
+    .quick-btn {
+      width: 26px;
+      height: 26px;
+      font-size: 0.75rem;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .quick-btn:hover {
+      background: var(--accent-primary);
+      color: #fff;
+    }
+
+    /* FLOATING CANVAS CONTROLS */
+    .canvas-controls {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-full);
+      padding: 6px 12px;
+      box-shadow: var(--shadow-md);
+      z-index: 60;
+    }
+
+    .zoom-text {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 45px;
+      text-align: center;
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast-container {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 10px 20px;
+      background: #1e293b;
+      border: 1px solid var(--accent-primary);
+      color: #fff;
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 868px) {
+      .app-sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%);
+      }
+      .app-sidebar.open {
+        transform: translateX(0);
+      }
+      .mobile-toggle-btn {
+        display: flex !important;
+      }
+    }
+
+    .mobile-toggle-btn {
+      display: none;
+    }
+  </style>
+</head>
+<body data-theme="vibrant">
+
+  <!-- ==========================================================================
+       APP NAVBAR / HEADER
+       ========================================================================== -->
+  <header class="app-header">
+    <div class="brand-group">
+      <button class="btn-icon mobile-toggle-btn" id="mobileToggle" title="Toggle Sidebar">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="brand-logo">
+        <i class="fa-solid fa-bolt"></i>
+      </div>
+      <div class="brand-title">
+        FlowSpark
+        <span class="brand-badge">PRO v1.0</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Layout Orientation -->
+      <div class="control-group">
+        <button class="btn-icon active" id="layoutVertical" title="Vertical Layout (Top-to-Bottom)">
+          <i class="fa-solid fa-arrow-down-long"></i>
+        </button>
+        <button class="btn-icon" id="layoutHorizontal" title="Horizontal Layout (Left-to-Right)">
+          <i class="fa-solid fa-arrow-right-long"></i>
+        </button>
+      </div>
+
+      <!-- Color Theme Switcher -->
+      <div class="theme-select-wrapper">
+        <i class="fa-solid fa-palette theme-icon-indicator"></i>
+        <select class="theme-select" id="themeSelect">
+          <option value="vibrant">Vibrant Spark</option>
+          <option value="cyberpunk">Cyberpunk Neon</option>
+          <option value="pastel">Pastel Dreams</option>
+          <option value="dark-obsidian">Dark Obsidian</option>
+          <option value="sunset">Sunset Glow</option>
+          <option value="emerald">Emerald Slate</option>
+        </select>
+      </div>
+
+      <!-- History & Actions -->
+      <div class="control-group">
+        <button class="btn-icon" id="undoBtn" title="Undo (Ctrl+Z)">
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+        <button class="btn-icon" id="redoBtn" title="Redo (Ctrl+Y)">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+        <button class="btn-icon" id="addNodeGlobalBtn" title="Add New Node">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button class="btn-icon" id="clearCanvasBtn" title="Clear Canvas">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+
+      <!-- Exports -->
+      <button class="btn-secondary" id="exportSvgBtn">
+        <i class="fa-solid fa-code"></i> SVG
+      </button>
+      <button class="btn-primary" id="exportPngBtn">
+        <i class="fa-solid fa-download"></i> Export PNG
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN APP WORKSPACE
+       ========================================================================== -->
+  <main class="app-workspace">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-tabs">
+        <button class="tab-btn active" id="tabPromptBtn">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Prompt Engine
+        </button>
+        <button class="tab-btn" id="tabInspectorBtn">
+          <i class="fa-solid fa-sliders"></i> Node Inspector
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+
+        <!-- PROMPT ENGINE TAB -->
+        <div id="tabPromptContent" class="tab-panel">
+          <div class="prompt-box-container">
+            <div class="section-header">
+              <span class="section-title">
+                <i class="fa-solid fa-brain" style="color: #a855f7;"></i> Describe Workflow
+              </span>
+            </div>
+
+            <textarea class="prompt-textarea" id="promptInput" placeholder="Describe any process, algorithm, decision tree, or workflow... (e.g., Explain how online food delivery works)"></textarea>
+
+            <button class="btn-generate" id="generateBtn">
+              <i class="fa-solid fa-bolt"></i> Generate Flowchart
+            </button>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <div class="section-header">
+              <span class="section-title">
+                <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i> Example Prompts
+              </span>
+            </div>
+
+            <div class="example-chips">
+              <div class="chip" data-prompt="How does machine learning work">🤖 Machine Learning</div>
+              <div class="chip" data-prompt="Explain devops and CI/CD pipeline">⚙️ DevOps Pipeline</div>
+              <div class="chip" data-prompt="Show how photosynthesis works">🌱 Photosynthesis</div>
+              <div class="chip" data-prompt="Explain blockchain and cryptocurrency">🔗 Blockchain</div>
+              <div class="chip" data-prompt="How does a rocket launch work">🚀 Rocket Launch</div>
+              <div class="chip" data-prompt="Explain the water cycle">💧 Water Cycle</div>
+              <div class="chip" data-prompt="Show the hiring process">👔 Hiring Process</div>
+              <div class="chip" data-prompt="How does DNA replication work">🧬 DNA Replication</div>
+              <div class="chip" data-prompt="Explain climate change">🌍 Climate Change</div>
+              <div class="chip" data-prompt="Map the user login process">🔐 User Auth Flow</div>
+              <div class="chip" data-prompt="How does drug discovery work">💊 Drug Discovery</div>
+              <div class="chip" data-prompt="Show supply chain management process">📦 Supply Chain</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NODE INSPECTOR TAB -->
+        <div id="tabInspectorContent" class="tab-panel" style="display: none;">
+          <div id="inspectorEmptyState" style="text-align: center; color: var(--text-dim); padding: 40px 10px;">
+            <i class="fa-solid fa-arrow-pointer" style="font-size: 2rem; margin-bottom: 12px; display: block;"></i>
+            Select a node on the canvas to inspect & edit its properties.
+          </div>
+
+          <div id="inspectorForm" class="inspector-card" style="display: none;">
+            <div class="form-group">
+              <label class="form-label">Node Title</label>
+              <input type="text" class="form-input" id="nodeTitleInput">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Node Description</label>
+              <textarea class="form-input" id="nodeDescInput" style="height: 60px; resize: none;"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Node Type / Shape</label>
+              <div class="node-type-grid">
+                <button class="type-btn" data-type="start"><i class="fa-solid fa-play"></i> Start / End</button>
+                <button class="type-btn" data-type="process"><i class="fa-solid fa-gear"></i> Process</button>
+                <button class="type-btn" data-type="decision"><i class="fa-solid fa-code-branch"></i> Decision</button>
+                <button class="type-btn" data-type="output"><i class="fa-solid fa-right-from-bracket"></i> Input/Output</button>
+              </div>
+            </div>
+
+            <div class="action-button-row" style="margin-top: 10px;">
+              <button class="btn-secondary" id="addChildNodeBtn">
+                <i class="fa-solid fa-plus"></i> Add Child
+              </button>
+              <button class="btn-secondary" id="deleteNodeBtn" style="color: #f43f5e; border-color: rgba(244,63,94,0.3);">
+                <i class="fa-solid fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- RIGHT CANVAS AREA -->
+    <section class="canvas-container" id="canvasContainer">
+      <div class="flow-viewport" id="flowViewport">
+        <!-- SVG CONNECTOR PATHS -->
+        <svg class="connector-svg" id="connectorSvg">
+          <defs>
+            <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--arrow-color)" id="arrowheadPath" />
+            </marker>
+            <marker id="arrowheadActive" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--arrow-active)" />
+            </marker>
+          </defs>
+          <g id="pathsGroup"></g>
+        </svg>
+
+        <!-- HTML FLOW NODES -->
+        <div class="nodes-layer" id="nodesLayer"></div>
+      </div>
+
+      <!-- FLOATING CANVAS CONTROLS -->
+      <div class="canvas-controls">
+        <button class="btn-icon" id="zoomOutBtn" title="Zoom Out">
+          <i class="fa-solid fa-minus"></i>
+        </button>
+        <span class="zoom-text" id="zoomText">100%</span>
+        <button class="btn-icon" id="zoomInBtn" title="Zoom In">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button class="btn-icon" id="resetViewBtn" title="Fit to View">
+          <i class="fa-solid fa-compress"></i>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT LOGIC
+       ========================================================================== -->
+  <script>
+    /* ==========================================================================
+       STATE MANAGEMENT
+       ========================================================================== */
+    const state = {
+      nodes: [],
+      edges: [],
+      selectedNodeId: null,
+      zoom: 1,
+      panX: 50,
+      panY: 50,
+      layoutOrientation: 'vertical', // 'vertical' or 'horizontal'
+      history: [],
+      historyIndex: -1,
+      theme: 'vibrant'
+    };
+
+    /* ==========================================================================
+       UNIVERSAL AI FLOWCHART ENGINE
+       Handles virtually any topic with domain intelligence & pattern matching
+       ========================================================================== */
+
+    // ---- DOMAIN TEMPLATES DATABASE (50+ domains) ----
+    const DOMAIN_TEMPLATES = {
+
+      // === TECHNOLOGY & SOFTWARE ===
+      "machine learning": [
+        { title: "Define Problem & Goals", desc: "Identify the ML task type: classification, regression, clustering", type: "start" },
+        { title: "Collect & Explore Data", desc: "Gather raw dataset and perform EDA", type: "output" },
+        { title: "Data Sufficient?", desc: "Check for enough samples and label quality", type: "decision", branches: { yes: "Preprocess & Feature Engineer", no: "Augment or Collect More Data" } },
+        { title: "Augment or Collect More Data", desc: "Use oversampling, scraping, or synthetic generation", type: "process" },
+        { title: "Preprocess & Feature Engineer", desc: "Clean nulls, encode, normalize, select features", type: "process" },
+        { title: "Split: Train / Validation / Test", desc: "Partition dataset with stratified split", type: "process" },
+        { title: "Select & Train Model", desc: "Try multiple algorithms (RF, XGBoost, Neural Net)", type: "process" },
+        { title: "Meets Accuracy Threshold?", desc: "Evaluate F1, AUC-ROC, or RMSE on validation set", type: "decision", branches: { yes: "Hyperparameter Tuning", no: "Try Different Architecture" } },
+        { title: "Try Different Architecture", desc: "Experiment with model variants or ensembles", type: "process" },
+        { title: "Hyperparameter Tuning", desc: "Use Grid Search or Bayesian Optimization", type: "process" },
+        { title: "Evaluate on Test Set", desc: "Final unbiased performance measurement", type: "process" },
+        { title: "Deploy Model to Production", desc: "Serve via REST API or batch inference pipeline", type: "end" }
+      ],
+
+      "deep learning": [
+        { title: "Define Neural Network Task", desc: "Image, text, audio, or tabular learning objective", type: "start" },
+        { title: "Prepare Dataset & Dataloaders", desc: "Batch data with normalization and augmentation", type: "process" },
+        { title: "Design Network Architecture", desc: "Choose CNN, RNN, Transformer or custom blocks", type: "process" },
+        { title: "Initialize Weights & Optimizer", desc: "He/Xavier init, Adam/SGD, learning rate schedule", type: "process" },
+        { title: "Forward Pass", desc: "Run input through all layers", type: "process" },
+        { title: "Compute Loss Function", desc: "Cross-entropy, MSE, or custom differentiable loss", type: "process" },
+        { title: "Backward Pass & Gradient Update", desc: "Backpropagation + optimizer.step()", type: "process" },
+        { title: "Overfitting Detected?", desc: "Compare train vs validation loss curves", type: "decision", branches: { yes: "Apply Regularization", no: "Continue Training Epochs" } },
+        { title: "Apply Regularization", desc: "Dropout, L2 weight decay, or data augmentation", type: "process" },
+        { title: "Continue Training Epochs", desc: "Loop until convergence or max epochs reached", type: "process" },
+        { title: "Save Best Checkpoint", desc: "Export model weights at lowest validation loss", type: "process" },
+        { title: "Model Deployment & Inference", desc: "Serve predictions via API or edge device", type: "end" }
+      ],
+
+      "neural network": [
+        { title: "Define Neural Network Task", desc: "Image, text, audio, or tabular learning objective", type: "start" },
+        { title: "Prepare Dataset & Dataloaders", desc: "Batch data with normalization and augmentation", type: "process" },
+        { title: "Design Network Architecture", desc: "Choose CNN, RNN, Transformer or custom blocks", type: "process" },
+        { title: "Initialize Weights & Optimizer", desc: "He/Xavier init, Adam/SGD, learning rate schedule", type: "process" },
+        { title: "Forward Pass", desc: "Run input through all layers", type: "process" },
+        { title: "Compute Loss Function", desc: "Cross-entropy, MSE, or custom differentiable loss", type: "process" },
+        { title: "Backward Pass & Gradient Update", desc: "Backpropagation + optimizer.step()", type: "process" },
+        { title: "Overfitting Detected?", desc: "Compare train vs validation loss curves", type: "decision", branches: { yes: "Apply Regularization", no: "Continue Training Epochs" } },
+        { title: "Apply Regularization", desc: "Dropout, L2 weight decay, or data augmentation", type: "process" },
+        { title: "Continue Training Epochs", desc: "Loop until convergence or max epochs reached", type: "process" },
+        { title: "Save Best Checkpoint", desc: "Export model weights at lowest validation loss", type: "process" },
+        { title: "Model Deployment & Inference", desc: "Serve predictions via API or edge device", type: "end" }
+      ],
+
+      "software development": [
+        { title: "Requirements Gathering", desc: "Collect stakeholder needs & functional specs", type: "start" },
+        { title: "System Design & Architecture", desc: "Define tech stack, APIs, DB schema", type: "process" },
+        { title: "Sprint Planning & Task Breakdown", desc: "Create user stories & estimate story points", type: "process" },
+        { title: "Feature Implementation", desc: "Write code following TDD & code review practices", type: "process" },
+        { title: "All Tests Passing?", desc: "Run unit, integration & E2E test suite", type: "decision", branches: { yes: "Deploy to Staging", no: "Fix Bugs & Regressions" } },
+        { title: "Fix Bugs & Regressions", desc: "Debug, patch & re-run failing tests", type: "process" },
+        { title: "Deploy to Staging", desc: "CI/CD pipeline builds & deploys to staging env", type: "process" },
+        { title: "UAT Approved?", desc: "Product owner & QA sign-off on staging", type: "decision", branches: { yes: "Release to Production", no: "Address UAT Feedback" } },
+        { title: "Address UAT Feedback", desc: "Refine based on user acceptance test results", type: "process" },
+        { title: "Release to Production", desc: "Blue/green or canary deployment to production", type: "end" }
+      ],
+
+      "devops": [
+        { title: "Code Commit & Push", desc: "Developer pushes feature branch to Git repo", type: "start" },
+        { title: "Trigger CI Pipeline", desc: "GitHub Actions / Jenkins detects push event", type: "process" },
+        { title: "Build & Lint Code", desc: "Compile, run ESLint / Pylint checks", type: "process" },
+        { title: "Run Automated Test Suite", desc: "Unit, integration & security scans (SAST)", type: "process" },
+        { title: "All Checks Pass?", desc: "Evaluate test coverage & security scan results", type: "decision", branches: { yes: "Build Docker Image", no: "Notify Developer & Block Merge" } },
+        { title: "Notify Developer & Block Merge", desc: "Send Slack alert with failure details", type: "process" },
+        { title: "Build Docker Image", desc: "Multi-stage Dockerfile build & tag with SHA", type: "process" },
+        { title: "Push to Container Registry", desc: "Docker Hub / ECR / GCR image push", type: "process" },
+        { title: "Deploy to Kubernetes", desc: "Helm chart upgrade with rolling update strategy", type: "process" },
+        { title: "Health Checks Pass?", desc: "Pod readiness probes & smoke tests", type: "decision", branches: { yes: "Production Live", no: "Rollback to Previous Release" } },
+        { title: "Rollback to Previous Release", desc: "kubectl rollout undo deployment", type: "process" },
+        { title: "Production Live & Monitored", desc: "Grafana dashboards & PagerDuty alerts active", type: "end" }
+      ],
+
+      "api design": [
+        { title: "Define API Requirements", desc: "Identify consumers, verbs & resource models", type: "start" },
+        { title: "Design OpenAPI Spec", desc: "Write YAML/JSON schema with endpoints & DTOs", type: "process" },
+        { title: "Implement Endpoints", desc: "Build controllers, services & repositories", type: "process" },
+        { title: "Authentication Required?", desc: "Check if JWT/OAuth2/API key needed", type: "decision", branches: { yes: "Add Auth Middleware", no: "Skip Auth Layer" } },
+        { title: "Add Auth Middleware", desc: "Validate tokens & enforce RBAC permissions", type: "process" },
+        { title: "Run API Tests", desc: "Use Postman / Supertest / Pytest for coverage", type: "process" },
+        { title: "Rate Limiting & Caching", desc: "Apply Redis cache & throttle rules", type: "process" },
+        { title: "Publish Documentation", desc: "Host Swagger UI / Redoc for consumers", type: "end" }
+      ],
+
+      "blockchain": [
+        { title: "Initiate Transaction", desc: "User signs & broadcasts transaction to network", type: "start" },
+        { title: "Propagate to Mempool", desc: "Transaction broadcast to peer nodes", type: "process" },
+        { title: "Validate Transaction", desc: "Check signature, balance & nonce", type: "decision", branches: { yes: "Include in Block Candidate", no: "Reject & Discard" } },
+        { title: "Reject & Discard", desc: "Invalid transaction dropped from mempool", type: "process" },
+        { title: "Include in Block Candidate", desc: "Miner/validator selects high-fee transactions", type: "process" },
+        { title: "Solve Proof of Work / Stake", desc: "Find valid hash or meet stake requirements", type: "process" },
+        { title: "Block Accepted by Network?", desc: "51% consensus validation", type: "decision", branches: { yes: "Append Block to Chain", no: "Orphan Block Discarded" } },
+        { title: "Append Block to Chain", desc: "Immutable record added, nodes sync state", type: "process" },
+        { title: "Transaction Confirmed", desc: "6+ confirmations = finality achieved", type: "end" }
+      ],
+
+      "cybersecurity": [
+        { title: "Define Security Scope", desc: "Identify assets, threat actors & attack surface", type: "start" },
+        { title: "Threat Modeling", desc: "STRIDE analysis: Spoofing, Tampering, Repudiation...", type: "process" },
+        { title: "Vulnerability Assessment", desc: "Automated scanning with Nessus / OpenVAS", type: "process" },
+        { title: "Critical Vulnerabilities Found?", desc: "CVSS score >= 7.0 threshold", type: "decision", branches: { yes: "Immediate Remediation", no: "Monitor & Log" } },
+        { title: "Immediate Remediation", desc: "Patch, reconfigure or isolate affected systems", type: "process" },
+        { title: "Penetration Testing", desc: "Manual red team exploitation attempts", type: "process" },
+        { title: "Security Controls Implementation", desc: "WAF, IDS/IPS, MFA, encryption at rest & transit", type: "process" },
+        { title: "Incident Response Plan", desc: "Define playbooks for breach containment", type: "process" },
+        { title: "Security Audit & Compliance", desc: "ISO 27001 / SOC2 / GDPR audit sign-off", type: "end" }
+      ],
+
+      "cloud computing": [
+        { title: "Define Cloud Strategy", desc: "Choose public, private, hybrid or multi-cloud", type: "start" },
+        { title: "Workload Assessment", desc: "Classify apps: lift-and-shift, re-platform, refactor", type: "process" },
+        { title: "Select Cloud Provider", desc: "AWS, GCP, Azure comparison & cost analysis", type: "decision", branches: { yes: "Provision Infrastructure (IaC)", no: "Re-evaluate Requirements" } },
+        { title: "Provision Infrastructure (IaC)", desc: "Terraform / CloudFormation templates", type: "process" },
+        { title: "Migrate Workloads", desc: "Data transfer, containerization & testing", type: "process" },
+        { title: "Configure Security & IAM", desc: "VPC, security groups, IAM roles & policies", type: "process" },
+        { title: "Set Up Monitoring", desc: "CloudWatch / Stackdriver / Azure Monitor", type: "process" },
+        { title: "Cost Optimization Review", desc: "Reserved instances, auto-scaling & right-sizing", type: "end" }
+      ],
+
+      // === LIFE SCIENCES & BIOLOGY ===
+      "photosynthesis": [
+        { title: "Sunlight Absorbed by Chlorophyll", desc: "Photons captured in chloroplast thylakoids", type: "start" },
+        { title: "Light-Dependent Reactions", desc: "Water split, ATP & NADPH synthesized, O₂ released", type: "process" },
+        { title: "Electron Transport Chain", desc: "Electrons flow through PSII → PQ → Cyt b6f → PSI", type: "process" },
+        { title: "Enough ATP & NADPH?", desc: "Check energy molecule availability", type: "decision", branches: { yes: "Calvin Cycle (Light-Independent)", no: "Stall & Wait for More Light" } },
+        { title: "Calvin Cycle (Light-Independent)", desc: "CO₂ fixed into G3P via RuBisCO enzyme", type: "process" },
+        { title: "G3P Conversion", desc: "G3P → glucose, starch & other carbohydrates", type: "process" },
+        { title: "Export to Plant Tissues", desc: "Sugars transported via phloem to roots & fruit", type: "end" }
+      ],
+
+      "dna replication": [
+        { title: "Helicase Unwinds Double Helix", desc: "Breaks hydrogen bonds at origin of replication", type: "start" },
+        { title: "Primase Adds RNA Primer", desc: "Short RNA primers mark start of new strand", type: "process" },
+        { title: "DNA Polymerase III Extends", desc: "Adds complementary nucleotides 5'→3'", type: "process" },
+        { title: "Leading vs Lagging Strand?", desc: "Determine continuous vs Okazaki fragment synthesis", type: "decision", branches: { yes: "Continuous Synthesis (Leading)", no: "Okazaki Fragments (Lagging)" } },
+        { title: "Okazaki Fragments (Lagging)", desc: "Short segments joined by DNA Ligase", type: "process" },
+        { title: "Proofreading by Polymerase I", desc: "3'→5' exonuclease removes errors", type: "process" },
+        { title: "DNA Ligase Seals Nicks", desc: "Phosphodiester bonds complete both strands", type: "process" },
+        { title: "Two Identical DNA Molecules", desc: "Semi-conservative replication complete", type: "end" }
+      ],
+
+      "cell division": [
+        { title: "Interphase: Cell Growth", desc: "DNA replication & organelle duplication (G1, S, G2)", type: "start" },
+        { title: "Prophase", desc: "Chromosomes condense, spindle fibers form", type: "process" },
+        { title: "Metaphase", desc: "Chromosomes align at cell equator (metaphase plate)", type: "process" },
+        { title: "Checkpoint Passed?", desc: "Spindle assembly checkpoint verification", type: "decision", branches: { yes: "Anaphase", no: "Arrest & Repair or Apoptosis" } },
+        { title: "Anaphase", desc: "Chromatids pulled to opposite poles", type: "process" },
+        { title: "Telophase", desc: "Nuclear envelopes reform around each set", type: "process" },
+        { title: "Cytokinesis", desc: "Cytoplasm divides into two daughter cells", type: "end" }
+      ],
+
+      "human digestion": [
+        { title: "Food Ingestion", desc: "Food enters mouth, mechanical & chemical digestion begins", type: "start" },
+        { title: "Stomach Processing", desc: "HCl & pepsin break down proteins; chyme formed", type: "process" },
+        { title: "Small Intestine Absorption", desc: "Nutrients absorbed via villi into bloodstream", type: "process" },
+        { title: "Nutrients Adequate?", desc: "Liver evaluates nutrient levels", type: "decision", branches: { yes: "Distribute to Body Cells", no: "Release Hunger Hormones" } },
+        { title: "Distribute to Body Cells", desc: "Blood carries glucose, amino acids & lipids", type: "process" },
+        { title: "Large Intestine Water Absorption", desc: "Water & electrolytes reabsorbed from waste", type: "process" },
+        { title: "Waste Elimination", desc: "Stool formed & excreted via rectum", type: "end" }
+      ],
+
+      // === PHYSICS & CHEMISTRY ===
+      "nuclear fission": [
+        { title: "Neutron Bombardment", desc: "Free neutron strikes fissile nucleus (U-235)", type: "start" },
+        { title: "Nucleus Absorbs Neutron", desc: "Forms highly unstable compound nucleus U-236", type: "process" },
+        { title: "Nucleus Splits?", desc: "Evaluate probability based on nuclear binding energy", type: "decision", branches: { yes: "Fission into Fragments", no: "Neutron Emission & Gamma Ray" } },
+        { title: "Fission into Fragments", desc: "Splits into Ba-141 + Kr-92 + 3 free neutrons", type: "process" },
+        { title: "Energy Released (E=mc²)", desc: "~200 MeV released as kinetic & thermal energy", type: "process" },
+        { title: "Chain Reaction?", desc: "Check if new neutrons trigger more fissions", type: "decision", branches: { yes: "Controlled Reactor Output", no: "Sub-critical Reaction Stops" } },
+        { title: "Controlled Reactor Output", desc: "Control rods moderate neutron flux", type: "process" },
+        { title: "Electricity Generation", desc: "Heat → Steam → Turbine → Generator", type: "end" }
+      ],
+
+      "chemical reaction": [
+        { title: "Identify Reactants", desc: "Determine chemical species & stoichiometry", type: "start" },
+        { title: "Check Reaction Conditions", desc: "Temperature, pressure, catalyst requirements", type: "process" },
+        { title: "Energy Barrier Overcome?", desc: "Activation energy provided (heat/catalyst)", type: "decision", branches: { yes: "Bond Breaking & Forming", no: "No Reaction Occurs" } },
+        { title: "Bond Breaking & Forming", desc: "Transition state → products formed", type: "process" },
+        { title: "Exothermic or Endothermic?", desc: "ΔH sign determines heat flow direction", type: "decision", branches: { yes: "Heat Released (Exothermic)", no: "Heat Absorbed (Endothermic)" } },
+        { title: "Products Formed", desc: "New chemical substances created", type: "process" },
+        { title: "Reaction Complete", desc: "Equilibrium or full conversion achieved", type: "end" }
+      ],
+
+      // === ECONOMICS & BUSINESS ===
+      "investment": [
+        { title: "Define Investment Goals", desc: "Identify risk tolerance, timeline & return targets", type: "start" },
+        { title: "Market Research & Analysis", desc: "Fundamental & technical analysis of opportunities", type: "process" },
+        { title: "Risk Acceptable?", desc: "Compare expected return vs. risk profile", type: "decision", branches: { yes: "Allocate Capital", no: "Seek Lower-Risk Asset" } },
+        { title: "Seek Lower-Risk Asset", desc: "Consider bonds, index funds or REIT", type: "process" },
+        { title: "Allocate Capital", desc: "Buy assets: stocks, bonds, crypto, real estate", type: "process" },
+        { title: "Monitor Portfolio", desc: "Track performance vs benchmark quarterly", type: "process" },
+        { title: "Portfolio Underperforming?", desc: "Compare against index benchmarks", type: "decision", branches: { yes: "Rebalance Portfolio", no: "Hold & Compound" } },
+        { title: "Rebalance Portfolio", desc: "Sell laggards, reinvest in stronger positions", type: "process" },
+        { title: "Achieve Financial Goal", desc: "Withdraw gains or reinvest for long-term growth", type: "end" }
+      ],
+
+      "supply chain": [
+        { title: "Demand Forecasting", desc: "Analyze sales trends & predict future orders", type: "start" },
+        { title: "Purchase Order to Supplier", desc: "Issue PO based on inventory levels", type: "process" },
+        { title: "Supplier Confirms?", desc: "Availability & lead time confirmation", type: "decision", branches: { yes: "Production & Manufacturing", no: "Find Alternative Supplier" } },
+        { title: "Find Alternative Supplier", desc: "Qualify backup vendor, negotiate price", type: "process" },
+        { title: "Production & Manufacturing", desc: "Raw materials converted to finished goods", type: "process" },
+        { title: "Quality Control Check", desc: "Inspect units against AQL standards", type: "decision", branches: { yes: "Warehouse & Distribution", no: "Reject & Rework Batch" } },
+        { title: "Reject & Rework Batch", desc: "Defective units sent for repair or disposal", type: "process" },
+        { title: "Warehouse & Distribution", desc: "Goods stored, picked & packed for shipment", type: "process" },
+        { title: "Last-Mile Delivery", desc: "Customer receives order on time", type: "end" }
+      ],
+
+      "hiring process": [
+        { title: "Job Requisition Approved", desc: "HR & manager align on role requirements", type: "start" },
+        { title: "Post Job Openings", desc: "Publish on LinkedIn, Indeed & internal channels", type: "process" },
+        { title: "Screen Applications", desc: "ATS filters & recruiter reviews resumes", type: "process" },
+        { title: "Candidate Shortlisted?", desc: "Meets minimum qualifications criteria", type: "decision", branches: { yes: "Phone Screen Interview", no: "Send Rejection Email" } },
+        { title: "Phone Screen Interview", desc: "30-min recruiter call to assess fit & motivation", type: "process" },
+        { title: "Technical Assessment", desc: "Skills test, case study or coding challenge", type: "process" },
+        { title: "Passed Assessment?", desc: "Score meets bar for technical role requirements", type: "decision", branches: { yes: "Panel Interview Rounds", no: "Decline & Archive" } },
+        { title: "Panel Interview Rounds", desc: "3–5 interview rounds with team members", type: "process" },
+        { title: "Offer Extended & Accepted", desc: "Compensation package negotiated & signed", type: "end" }
+      ],
+
+      // === MEDICINE & HEALTHCARE ===
+      "emergency response": [
+        { title: "Emergency Call Received", desc: "Dispatcher receives 911 / emergency call", type: "start" },
+        { title: "Assess Emergency Type", desc: "Medical, fire, police, or natural disaster", type: "process" },
+        { title: "Life-Threatening?", desc: "Evaluate severity: trauma, cardiac, respiratory", type: "decision", branches: { yes: "Dispatch Paramedics & ALS Unit", no: "Dispatch BLS or Police" } },
+        { title: "Dispatch Paramedics & ALS Unit", desc: "ALS team with defibrillator & advanced meds", type: "process" },
+        { title: "On-Scene Triage", desc: "START triage: immediate, delayed, minor, deceased", type: "process" },
+        { title: "Stabilize Patient", desc: "Airway, breathing, circulation (ABC) management", type: "process" },
+        { title: "Transport to Hospital", desc: "Rapid transfer to nearest trauma center", type: "process" },
+        { title: "ER Handoff & Treatment", desc: "Physician takeover & definitive care", type: "end" }
+      ],
+
+      "drug discovery": [
+        { title: "Identify Disease Target", desc: "Select protein receptor or pathway to modulate", type: "start" },
+        { title: "High-Throughput Screening", desc: "Test millions of compounds for bioactivity", type: "process" },
+        { title: "Hit Compound Identified?", desc: "Activity threshold: IC50 < 10µM", type: "decision", branches: { yes: "Lead Optimization", no: "Expand Chemical Library" } },
+        { title: "Expand Chemical Library", desc: "Synthesize new analogs or acquire compounds", type: "process" },
+        { title: "Lead Optimization", desc: "Improve potency, selectivity & ADMET properties", type: "process" },
+        { title: "Preclinical Testing", desc: "In vitro & in vivo animal studies for efficacy", type: "process" },
+        { title: "Safe & Efficacious?", desc: "Meet safety thresholds before human trials", type: "decision", branches: { yes: "IND Application", no: "Back to Lead Optimization" } },
+        { title: "IND Application", desc: "Submit Investigational New Drug to FDA", type: "process" },
+        { title: "Phase I–III Clinical Trials", desc: "Human safety & efficacy evaluation in 3 phases", type: "process" },
+        { title: "FDA / EMA Drug Approval", desc: "New Drug Application reviewed & approved", type: "end" }
+      ],
+
+      // === SPACE & ASTRONOMY ===
+      "rocket launch": [
+        { title: "Mission Planning", desc: "Define payload, orbit & trajectory parameters", type: "start" },
+        { title: "Vehicle Assembly", desc: "Stack stages in VAB, integrate payload fairing", type: "process" },
+        { title: "System Readiness Review", desc: "All subsystems nominal: avionics, propulsion, comms", type: "decision", branches: { yes: "Fuel & Count Down", no: "Hold & Investigate Anomaly" } },
+        { title: "Hold & Investigate Anomaly", desc: "Engineering team resolves issues before proceeding", type: "process" },
+        { title: "Fuel & Count Down", desc: "LOX/RP-1 loading, T-minus countdown sequence", type: "process" },
+        { title: "Ignition & Liftoff", desc: "Main engines ignite, vehicle clears tower", type: "process" },
+        { title: "Max-Q Aerodynamic Phase", desc: "Maximum dynamic pressure, pitch & roll maneuver", type: "process" },
+        { title: "Stage Separation", desc: "First stage separates, second stage ignites", type: "process" },
+        { title: "Orbital Insertion", desc: "Final burn achieves target orbit altitude & velocity", type: "end" }
+      ],
+
+      "black hole formation": [
+        { title: "Massive Star Lives (>8 Solar Masses)", desc: "Main sequence star burns hydrogen for millions of years", type: "start" },
+        { title: "Core Hydrogen Depleted", desc: "Fusion shifts to helium, carbon, then iron", type: "process" },
+        { title: "Iron Core Collapse", desc: "Electron degeneracy pressure overcome", type: "process" },
+        { title: "Core Mass > Tolman–Oppenheimer–Volkoff Limit?", desc: "Greater than ~3 solar masses", type: "decision", branches: { yes: "Black Hole Formation", no: "Neutron Star Remains" } },
+        { title: "Supernova Explosion", desc: "Shockwave expels outer star layers", type: "process" },
+        { title: "Black Hole Formation", desc: "Singularity forms, event horizon established", type: "process" },
+        { title: "Accretion Disk & Jets", desc: "Matter spirals in, relativistic jets emitted", type: "end" }
+      ],
+
+      // === CLIMATE & ENVIRONMENT ===
+      "climate change": [
+        { title: "Fossil Fuel Combustion", desc: "CO₂, CH₄ & N₂O emissions from industry & transport", type: "start" },
+        { title: "Greenhouse Gas Accumulation", desc: "GHGs trap longwave radiation in atmosphere", type: "process" },
+        { title: "Global Temperature Rising?", desc: "Compare to pre-industrial baseline +1.5°C threshold", type: "decision", branches: { yes: "Cascade Effects Begin", no: "Monitor & Continue Assessment" } },
+        { title: "Cascade Effects Begin", desc: "Ice cap melting, sea level rise, extreme weather", type: "process" },
+        { title: "Ecosystem Disruption", desc: "Species migration, coral bleaching, drought", type: "process" },
+        { title: "Policy & Mitigation Response", desc: "Carbon taxes, renewables & Paris Agreement targets", type: "decision", branches: { yes: "Net-Zero Transition", no: "Runaway Climate Scenario" } },
+        { title: "Net-Zero Transition", desc: "Renewable energy, carbon capture & reforestation", type: "process" },
+        { title: "Climate Stabilization", desc: "Emissions plateau & temperature stabilizes", type: "end" }
+      ],
+
+      "recycling": [
+        { title: "Waste Generated", desc: "Consumer or industrial waste produced", type: "start" },
+        { title: "Segregation at Source", desc: "Separate recyclables, compost & general waste", type: "process" },
+        { title: "Recyclable Material?", desc: "Check material type: plastic, glass, metal, paper", type: "decision", branches: { yes: "Collection & Transport", no: "Landfill or Incineration" } },
+        { title: "Collection & Transport", desc: "Curbside pickup or drop-off center", type: "process" },
+        { title: "Material Recovery Facility", desc: "Sorting conveyor, magnet & optical sensors", type: "process" },
+        { title: "Processing & Remanufacturing", desc: "Shred, melt, pelletize or pulp material", type: "process" },
+        { title: "New Product Manufacturing", desc: "Recycled material used in new goods", type: "end" }
+      ],
+
+      // === EDUCATION ===
+      "learning process": [
+        { title: "Identify Learning Objective", desc: "Define what knowledge or skill to acquire", type: "start" },
+        { title: "Select Learning Resources", desc: "Books, online courses, mentors or labs", type: "process" },
+        { title: "Active Study & Practice", desc: "Read, code, experiment, take notes", type: "process" },
+        { title: "Concept Understood?", desc: "Self-test with questions or practice problems", type: "decision", branches: { yes: "Apply Knowledge Practically", no: "Review & Seek Help" } },
+        { title: "Review & Seek Help", desc: "Revisit resources, ask peers or instructor", type: "process" },
+        { title: "Apply Knowledge Practically", desc: "Build projects, solve real-world problems", type: "process" },
+        { title: "Get Feedback & Iterate", desc: "Review errors, refine understanding", type: "process" },
+        { title: "Mastery Achieved", desc: "Consistent performance & teaching others", type: "end" }
+      ],
+
+      // === PSYCHOLOGY ===
+      "decision making": [
+        { title: "Problem or Opportunity Identified", desc: "Trigger event requiring a choice", type: "start" },
+        { title: "Gather Information", desc: "Collect data, facts & stakeholder input", type: "process" },
+        { title: "Generate Alternatives", desc: "Brainstorm possible courses of action", type: "process" },
+        { title: "Sufficient Options?", desc: "At least 3 meaningful alternatives available", type: "decision", branches: { yes: "Evaluate Trade-offs", no: "Expand Research" } },
+        { title: "Evaluate Trade-offs", desc: "Pros/cons, risk matrix & cost-benefit analysis", type: "process" },
+        { title: "Choose Best Alternative", desc: "Select option aligned with goals & values", type: "process" },
+        { title: "Implement Decision", desc: "Execute action plan with milestones", type: "process" },
+        { title: "Review Outcome", desc: "Measure results vs expected", type: "end" }
+      ],
+
+      // === COOKING & FOOD ===
+      "cooking pasta": [
+        { title: "Boil Water", desc: "Fill large pot with salted water (6L per 500g)", type: "start" },
+        { title: "Water at Rolling Boil?", desc: "100°C / 212°F achieved", type: "decision", branches: { yes: "Add Pasta", no: "Wait & Increase Heat" } },
+        { title: "Add Pasta", desc: "Drop pasta in, stir to prevent sticking", type: "process" },
+        { title: "Cook Per Package Time", desc: "Usually 8-12 min depending on shape", type: "process" },
+        { title: "Al Dente Test?", desc: "Taste test: slight firmness in center", type: "decision", branches: { yes: "Drain & Reserve Water", no: "Cook 1 More Minute" } },
+        { title: "Drain & Reserve Water", desc: "Save 1 cup pasta water for sauce", type: "process" },
+        { title: "Toss with Sauce", desc: "Combine with warmed sauce in pan", type: "process" },
+        { title: "Serve & Garnish", desc: "Plate, add parmigiano & fresh basil", type: "end" }
+      ],
+
+      "baking bread": [
+        { title: "Activate Yeast", desc: "Dissolve yeast in warm water (40°C) with sugar", type: "start" },
+        { title: "Yeast Active & Foamy?", desc: "Check after 10 minutes", type: "decision", branches: { yes: "Mix Dough", no: "Replace Yeast & Retry" } },
+        { title: "Mix Dough", desc: "Combine flour, salt, oil & yeast mixture", type: "process" },
+        { title: "Knead for 10 Minutes", desc: "Develop gluten structure until smooth", type: "process" },
+        { title: "First Rise (Bulk Ferment)", desc: "Cover & rest 1–2 hours until doubled", type: "process" },
+        { title: "Shape & Second Rise", desc: "Punch down, shape loaf, rise 45 min", type: "process" },
+        { title: "Bake at 230°C for 30 Min", desc: "Steam in oven for crispy crust", type: "process" },
+        { title: "Bread Baked!", desc: "Cool on wire rack before slicing", type: "end" }
+      ],
+
+      // === FINANCE ===
+      "loan application": [
+        { title: "Applicant Submits Loan Request", desc: "Online form or in-branch application", type: "start" },
+        { title: "Credit Score Check", desc: "Pull Equifax/Experian/TransUnion reports", type: "process" },
+        { title: "Credit Score >= 650?", desc: "Minimum threshold for standard loan", type: "decision", branches: { yes: "Income Verification", no: "Reject or Offer Secured Loan" } },
+        { title: "Reject or Offer Secured Loan", desc: "Collateral-based loan at higher rate", type: "process" },
+        { title: "Income Verification", desc: "Review pay stubs, tax returns & bank statements", type: "process" },
+        { title: "Debt-to-Income Ratio OK?", desc: "DTI must be < 43% for conventional loan", type: "decision", branches: { yes: "Underwriting & Approval", no: "Suggest Debt Consolidation" } },
+        { title: "Underwriting & Approval", desc: "Final risk assessment by loan officer", type: "process" },
+        { title: "Loan Disbursed", desc: "Funds transferred to borrower account", type: "end" }
+      ],
+
+      // === AGRICULTURE ===
+      "crop cultivation": [
+        { title: "Soil Testing & Analysis", desc: "pH, nutrient levels & texture assessment", type: "start" },
+        { title: "Land Preparation", desc: "Plowing, harrowing & fertilizer application", type: "process" },
+        { title: "Optimal Conditions Met?", desc: "Temperature, humidity & pH within range", type: "decision", branches: { yes: "Seed Sowing / Planting", no: "Amend Soil & Wait" } },
+        { title: "Amend Soil & Wait", desc: "Add lime, compost or micronutrients", type: "process" },
+        { title: "Seed Sowing / Planting", desc: "Plant at correct depth & spacing", type: "process" },
+        { title: "Irrigation & Pest Management", desc: "Drip/sprinkler irrigation, integrated pest control", type: "process" },
+        { title: "Disease or Pest Outbreak?", desc: "Monitor for fungal, bacterial or insect damage", type: "decision", branches: { yes: "Apply Treatment", no: "Continue Normal Care" } },
+        { title: "Apply Treatment", desc: "Fungicide, pesticide or biological control", type: "process" },
+        { title: "Harvest & Post-Harvest", desc: "Mechanical or manual harvest, grading & storage", type: "end" }
+      ],
+
+      // === LEGAL ===
+      "legal case": [
+        { title: "Client Consultation", desc: "Attorney reviews facts, documents & timeline", type: "start" },
+        { title: "Case Evaluation", desc: "Assess merits, liability & legal grounds", type: "process" },
+        { title: "Strong Case?", desc: "Probability of favorable outcome > 60%?", type: "decision", branches: { yes: "File Complaint", no: "Advise Settlement or Alternative" } },
+        { title: "File Complaint", desc: "Submit petition to court, serve defendant", type: "process" },
+        { title: "Discovery Phase", desc: "Exchange documents, depositions & interrogatories", type: "process" },
+        { title: "Settlement Offered?", desc: "Defendant proposes out-of-court settlement", type: "decision", branches: { yes: "Negotiate & Accept/Reject", no: "Proceed to Trial" } },
+        { title: "Negotiate & Accept/Reject", desc: "Client decides based on offer terms", type: "process" },
+        { title: "Trial & Verdict", desc: "Present case to judge or jury", type: "process" },
+        { title: "Case Resolved", desc: "Judgment enforced or appeal filed", type: "end" }
+      ],
+
+      // === TRANSPORTATION ===
+      "electric vehicle charging": [
+        { title: "Driver Arrives at Charging Station", desc: "Vehicle battery at low state of charge", type: "start" },
+        { title: "Plug In Connector", desc: "CCS, CHAdeMO, or Type 2 connector inserted", type: "process" },
+        { title: "Authentication & Payment", desc: "RFID card, app or credit card verification", type: "decision", branches: { yes: "Initiate Charging Session", no: "Payment Failed – Retry" } },
+        { title: "Initiate Charging Session", desc: "OCPP handshake between charger & CSMS", type: "process" },
+        { title: "DC Fast Charge or AC Level 2?", desc: "Check charger type & vehicle capabilities", type: "decision", branches: { yes: "DC Fast: 20–80% in 30 min", no: "AC Level 2: Full charge in 6–8 hrs" } },
+        { title: "Battery Management System", desc: "BMS monitors temperature, cell balance & SOC", type: "process" },
+        { title: "Charge Complete or Unplugged", desc: "Session ends, receipt sent to user", type: "end" }
+      ],
+
+      // === SOCIAL MEDIA / CONTENT ===
+      "content creation": [
+        { title: "Identify Audience & Niche", desc: "Define target demographics & content pillars", type: "start" },
+        { title: "Research & Ideation", desc: "Keyword research, trending topics & competitor analysis", type: "process" },
+        { title: "Content Brief & Outline", desc: "Structure key points, hooks & CTAs", type: "process" },
+        { title: "Content Production", desc: "Write, film, design or record the content", type: "process" },
+        { title: "Quality Review", desc: "Proofread, fact-check & brand consistency check", type: "decision", branches: { yes: "Publish & Distribute", no: "Revise & Improve" } },
+        { title: "Revise & Improve", desc: "Edit based on review feedback", type: "process" },
+        { title: "Publish & Distribute", desc: "Multi-platform post with optimal timing", type: "process" },
+        { title: "Analyze Performance", desc: "Track views, engagement & conversions", type: "end" }
+      ],
+
+      // === ENGINEERING ===
+      "product design": [
+        { title: "User Research & Problem Definition", desc: "Interviews, surveys & empathy mapping", type: "start" },
+        { title: "Define Requirements (PRD)", desc: "Functional, non-functional & design requirements", type: "process" },
+        { title: "Ideation & Sketching", desc: "Brainstorm concepts, crazy 8s & design studios", type: "process" },
+        { title: "Prototype Development", desc: "Lo-fi wireframes → Hi-fi interactive prototype", type: "process" },
+        { title: "User Testing", desc: "Usability tests with 5+ participants", type: "decision", branches: { yes: "Design Approved", no: "Iterate Based on Feedback" } },
+        { title: "Iterate Based on Feedback", desc: "Refine designs addressing usability issues", type: "process" },
+        { title: "Design Approved", desc: "Stakeholder sign-off on final design system", type: "process" },
+        { title: "Hand-off to Engineering", desc: "Figma specs, design tokens & component library", type: "end" }
+      ],
+
+      // === HISTORY ===
+      "world war 2": [
+        { title: "Rise of Fascism & Nazi Germany", desc: "Hitler seizes power, Axis powers form (1933–1939)", type: "start" },
+        { title: "Germany Invades Poland", desc: "September 1, 1939 – WWII begins", type: "process" },
+        { title: "Allies Declare War", desc: "Britain & France declare war on Germany", type: "process" },
+        { title: "Blitzkrieg Through Europe", desc: "France falls, Dunkirk evacuation (1940)", type: "process" },
+        { title: "Battle of Britain", desc: "RAF defends UK from Luftwaffe air campaign", type: "decision", branches: { yes: "UK Survives – War Continues", no: "If UK Falls – Axis Dominates West" } },
+        { title: "Operation Barbarossa", desc: "Germany invades USSR, June 1941", type: "process" },
+        { title: "US Enters War", desc: "Pearl Harbor attack, December 7, 1941", type: "process" },
+        { title: "D-Day & Allied Advance", desc: "Normandy landings, June 6, 1944", type: "process" },
+        { title: "German Surrender & VE Day", desc: "May 8, 1945 – War ends in Europe", type: "process" },
+        { title: "Japan Surrenders – War Ends", desc: "Atomic bombs & VJ Day, September 2, 1945", type: "end" }
+      ],
+
+      // === ARTS & CREATIVITY ===
+      "film making": [
+        { title: "Concept & Script Development", desc: "Write logline, treatment & full screenplay", type: "start" },
+        { title: "Pre-Production", desc: "Cast actors, scout locations, plan shots", type: "process" },
+        { title: "Budget Secured?", desc: "Financing from studio, investors or crowdfunding", type: "decision", branches: { yes: "Begin Principal Photography", no: "Reduce Scope or Find New Funding" } },
+        { title: "Reduce Scope or Find New Funding", desc: "Pitch to more investors or cut production costs", type: "process" },
+        { title: "Begin Principal Photography", desc: "Shoot all scenes per production schedule", type: "process" },
+        { title: "Post-Production: Editing", desc: "Assemble rough cut → fine cut → picture lock", type: "process" },
+        { title: "Sound Design & VFX", desc: "Foley, score, color grading & visual effects", type: "process" },
+        { title: "Film Festival & Distribution", desc: "Premiere, acquire distribution deal & release", type: "end" }
+      ],
+
+      // === MATHEMATICS ===
+      "sorting algorithm": [
+        { title: "Input Unsorted Array", desc: "Array of n elements to be sorted", type: "start" },
+        { title: "Choose Algorithm", desc: "QuickSort, MergeSort, HeapSort based on use case", type: "process" },
+        { title: "Array Size <= 1?", desc: "Base case: already sorted", type: "decision", branches: { yes: "Return Array (Base Case)", no: "Divide & Conquer" } },
+        { title: "Divide & Conquer", desc: "Split array into sub-arrays recursively", type: "process" },
+        { title: "Sort Sub-Arrays", desc: "Recursively sort each partition", type: "process" },
+        { title: "Merge Sorted Partitions", desc: "Combine sorted halves in order", type: "process" },
+        { title: "Sorted Array Returned", desc: "O(n log n) time complexity achieved", type: "end" }
+      ],
+
+      // === DEFAULT PRESETS (kept from original) ===
+      "food delivery": [
+        { title: "Browse Restaurants", desc: "User opens app and selects items", type: "start" },
+        { title: "Items in Stock?", desc: "Verify menu availability", type: "decision", branches: { yes: "Proceed to Checkout", no: "Suggest Alternatives" } },
+        { title: "Suggest Alternatives", desc: "User chooses substitute item", type: "process" },
+        { title: "Proceed to Checkout", desc: "Enter delivery address & payment details", type: "process" },
+        { title: "Payment Valid?", desc: "Authenticate payment gateway transaction", type: "decision", branches: { yes: "Send Order to Kitchen", no: "Display Payment Error" } },
+        { title: "Display Payment Error", desc: "Prompt user to retry payment", type: "process" },
+        { title: "Send Order to Kitchen", desc: "Restaurant confirms & prepares food", type: "process" },
+        { title: "Assign Courier", desc: "Driver accepts order & tracks arrival", type: "process" },
+        { title: "Order Delivered!", desc: "Customer receives food & leaves review", type: "end" }
+      ],
+      "startup": [
+        { title: "Idea & Market Research", desc: "Validate target problem & customer demand", type: "start" },
+        { title: "Build Prototype (MVP)", desc: "Develop minimum viable product", type: "process" },
+        { title: "User Feedback Positive?", desc: "Test MVP with beta users", type: "decision", branches: { yes: "Secure Seed Capital", no: "Pivot Core Product" } },
+        { title: "Pivot Core Product", desc: "Refine features based on feedback", type: "process" },
+        { title: "Secure Seed Capital", desc: "Hire core engineering & marketing team", type: "process" },
+        { title: "Public Launch", desc: "Execute multi-channel marketing campaign", type: "process" },
+        { title: "Achieve Product-Market Fit?", desc: "Analyze customer retention metrics", type: "decision", branches: { yes: "Scale Operations", no: "Optimize Funnel" } },
+        { title: "Optimize Funnel", desc: "Improve user onboarding & support", type: "process" },
+        { title: "Scale Operations", desc: "Expand market reach & grow revenue", type: "end" }
+      ],
+      "water cycle": [
+        { title: "Solar Heat Energy", desc: "Sun warms surface water in oceans & lakes", type: "start" },
+        { title: "Evaporation & Transpiration", desc: "Liquid water converts to rising vapor", type: "process" },
+        { title: "Condensation", desc: "Vapor cools down to form cloud droplets", type: "process" },
+        { title: "Clouds Saturated?", desc: "Atmospheric moisture density reaches threshold", type: "decision", branches: { yes: "Precipitation", no: "Drift Across Sky" } },
+        { title: "Drift Across Sky", desc: "Clouds move with atmospheric winds", type: "process" },
+        { title: "Precipitation", desc: "Rain, snow, or hail falls to Earth", type: "process" },
+        { title: "Collection & Runoff", desc: "Water returns to rivers, groundwater & oceans", type: "end" }
+      ],
+      "user login": [
+        { title: "User Credentials Input", desc: "User inputs email/username & password", type: "start" },
+        { title: "Send Auth Request", desc: "POST request to authentication API", type: "process" },
+        { title: "Credentials Valid?", desc: "Verify password hash against database", type: "decision", branches: { yes: "Is 2FA Enabled?", no: "Display Invalid Login Error" } },
+        { title: "Display Invalid Login Error", desc: "Show error and increment failed attempt counter", type: "process" },
+        { title: "Is 2FA Enabled?", desc: "Check user security settings", type: "decision", branches: { yes: "Prompt for OTP Code", no: "Issue Session Token" } },
+        { title: "Prompt for OTP Code", desc: "User inputs 6-digit authenticator code", type: "process" },
+        { title: "Issue Session Token", desc: "Generate JWT token & store session", type: "process" },
+        { title: "Redirect to Dashboard", desc: "Access granted successfully", type: "end" }
+      ],
+      "espresso": [
+        { title: "Grind Coffee Beans", desc: "Grind 18g fresh beans to fine espresso size", type: "start" },
+        { title: "Tamp Portafilter", desc: "Apply 30 lbs even pressure to coffee bed", type: "process" },
+        { title: "Machine Heated to ~93°C?", desc: "Check boiler temperature gauge", type: "decision", branches: { yes: "Start Extraction Pump", no: "Wait for Machine Warmup" } },
+        { title: "Wait for Machine Warmup", desc: "Purge steam wand & wait 30s", type: "process" },
+        { title: "Start Extraction Pump", desc: "Pull 36g liquid espresso shot in 28 seconds", type: "process" },
+        { title: "Crema & Yield Optimal?", desc: "Check flow rate & crema golden color", type: "decision", branches: { yes: "Serve Espresso", no: "Adjust Grind Size" } },
+        { title: "Adjust Grind Size", desc: "Fine-tune grinder setting for next shot", type: "process" },
+        { title: "Serve Espresso", desc: "Enjoy rich, balanced espresso shot!", type: "end" }
+      ],
+      "checkout": [
+        { title: "Click Proceed to Checkout", desc: "User reviews cart items and initiates checkout", type: "start" },
+        { title: "User Logged In?", desc: "Check authentication session cookie", type: "decision", branches: { yes: "Load Saved Address", no: "Guest Checkout / Login" } },
+        { title: "Guest Checkout / Login", desc: "User enters guest contact details", type: "process" },
+        { title: "Load Saved Address", desc: "Select shipping & delivery option", type: "process" },
+        { title: "Process Payment", desc: "Transmit credit card data to gateway", type: "process" },
+        { title: "Payment Approved?", desc: "Verify funds authorization", type: "decision", branches: { yes: "Generate Order Confirmation", no: "Show Payment Decline Error" } },
+        { title: "Show Payment Decline Error", desc: "Ask user for secondary payment card", type: "process" },
+        { title: "Generate Order Confirmation", desc: "Send receipt email & dispatch to warehouse", type: "end" }
+      ],
+      "addition": [
+        { title: "Start Program", desc: "Initialize variables A, B, and Sum", type: "start" },
+        { title: "Input Number A & B", desc: "Read first number A and second number B", type: "output" },
+        { title: "Calculate Sum = A + B", desc: "Perform arithmetic addition operation", type: "process" },
+        { title: "Is Sum > 0?", desc: "Evaluate result sign condition", type: "decision", branches: { yes: "Display Positive Result", no: "Display Non-Positive Result" } },
+        { title: "Display Non-Positive Result", desc: "Print zero or negative indicator", type: "output" },
+        { title: "Display Positive Result", desc: "Output calculated Sum to screen", type: "output" },
+        { title: "End Program", desc: "Terminate addition execution flow", type: "end" }
+      ],
+      "birth": [
+        { title: "Birth & Infancy", desc: "Beginning of life (0-2 years)", type: "start" },
+        { title: "Childhood & Education", desc: "Growth, learning & schooling (3-18 years)", type: "process" },
+        { title: "Higher Education / Career Path?", desc: "Choose personal & professional trajectory", type: "decision", branches: { yes: "University / Skill Specialization", no: "Direct Entry into Workforce" } },
+        { title: "Direct Entry into Workforce", desc: "Start entry-level jobs & practical experience", type: "process" },
+        { title: "University / Skill Specialization", desc: "Obtain degree & professional credentials", type: "process" },
+        { title: "Adulthood & Career Building", desc: "Work, family, relationships & milestone goals", type: "process" },
+        { title: "Reach Retirement Age?", desc: "Evaluate financial freedom & career end", type: "decision", branches: { yes: "Golden Years & Retirement", no: "Continued Passion Projects" } },
+        { title: "Golden Years & Legacy", desc: "Enjoy family, mentoring & senior years", type: "process" },
+        { title: "End of Life", desc: "Natural passing & lasting legacy", type: "end" }
+      ]
+    };
+
+    // ---- DOMAIN CLASSIFIER ----
+    // Maps keyword clusters → domain template keys
+    const DOMAIN_CLASSIFIERS = [
+      // Technology
+      { keywords: ["machine learning","ml model","train model","ai model","supervised learning","unsupervised","random forest","xgboost","gradient boosting"], domain: "machine learning" },
+      { keywords: ["deep learning","neural network","cnn","rnn","transformer","lstm","backpropagation","forward pass","epoch","gradient descent"], domain: "deep learning" },
+      { keywords: ["software development","software engineering","sdlc","agile","scrum","sprint","code review","continuous integration"], domain: "software development" },
+      { keywords: ["devops","ci/cd","docker","kubernetes","jenkins","github actions","deployment pipeline","helm chart"], domain: "devops" },
+      { keywords: ["api","rest api","graphql","microservice","endpoint","swagger","openapi"], domain: "api design" },
+      { keywords: ["blockchain","cryptocurrency","bitcoin","ethereum","smart contract","web3","defi","nft","consensus","proof of work"], domain: "blockchain" },
+      { keywords: ["cybersecurity","security","hacking","penetration test","vulnerability","firewall","intrusion detection","zero trust"], domain: "cybersecurity" },
+      { keywords: ["cloud","aws","gcp","azure","serverless","lambda","s3","iam","terraform","infrastructure"], domain: "cloud computing" },
+      { keywords: ["sorting","algorithm","quicksort","mergesort","binary search","data structure","time complexity","big o"], domain: "sorting algorithm" },
+      // Science
+      { keywords: ["photosynthesis","chlorophyll","chloroplast","calvin cycle","light reaction"], domain: "photosynthesis" },
+      { keywords: ["dna replication","helicase","dna polymerase","replication fork","okazaki"], domain: "dna replication" },
+      { keywords: ["cell division","mitosis","meiosis","prophase","metaphase","anaphase","cytokinesis"], domain: "cell division" },
+      { keywords: ["digestion","digestive system","stomach","intestine","absorption","gut","bile","enzyme"], domain: "human digestion" },
+      { keywords: ["nuclear","fission","fusion","neutron","uranium","chain reaction","reactor","radioactive"], domain: "nuclear fission" },
+      { keywords: ["chemical reaction","chemistry","reactant","product","catalyst","activation energy","bond","exothermic","endothermic"], domain: "chemical reaction" },
+      { keywords: ["rocket","launch","spacecraft","nasa","spacex","orbital","countdown","payload","liftoff"], domain: "rocket launch" },
+      { keywords: ["black hole","supernova","neutron star","event horizon","singularity","stellar","galaxy"], domain: "black hole formation" },
+      { keywords: ["climate","global warming","greenhouse","carbon dioxide","emission","temperature rise","arctic","sea level"], domain: "climate change" },
+      { keywords: ["recycling","waste management","landfill","compost","material recovery","upcycling"], domain: "recycling" },
+      // Business
+      { keywords: ["investment","stock","portfolio","dividend","trading","hedge fund","asset allocation","equity","bond"], domain: "investment" },
+      { keywords: ["supply chain","logistics","warehouse","inventory","procurement","vendor","distribution","fulfillment"], domain: "supply chain" },
+      { keywords: ["hiring","recruitment","job interview","hr process","onboarding","applicant tracking","candidate"], domain: "hiring process" },
+      { keywords: ["startup","mvp","product market fit","pivot","seed funding","venture capital","launch plan"], domain: "startup" },
+      { keywords: ["food delivery","restaurant order","takeout","delivery app","uber eats","doordash"], domain: "food delivery" },
+      { keywords: ["checkout","e-commerce","shopping cart","payment gateway","order processing"], domain: "checkout" },
+      { keywords: ["loan","mortgage","credit","bank loan","lending","credit score","underwriting","debt"], domain: "loan application" },
+      // Medicine
+      { keywords: ["emergency","ambulance","ems","911","triage","paramedic","trauma","first aid"], domain: "emergency response" },
+      { keywords: ["drug discovery","pharmaceutical","clinical trial","fda approval","medicine development","pharmacology"], domain: "drug discovery" },
+      // Agriculture
+      { keywords: ["crop","agriculture","farming","harvest","irrigation","soil","plantation","pesticide","fertilizer"], domain: "crop cultivation" },
+      // Education
+      { keywords: ["learning","education","study","teaching","curriculum","mastery","tutoring","course"], domain: "learning process" },
+      { keywords: ["decision","problem solving","choice","trade-off","alternative","risk assessment"], domain: "decision making" },
+      // Transportation
+      { keywords: ["electric vehicle","ev charging","tesla","battery charging","ocpp","charger station"], domain: "electric vehicle charging" },
+      // Food & cooking
+      { keywords: ["pasta","noodle","spaghetti","al dente","boil water"], domain: "cooking pasta" },
+      { keywords: ["bread","baking","yeast","dough","knead","ferment","loaf"], domain: "baking bread" },
+      { keywords: ["espresso","coffee","barista","portafilter","grind","extraction"], domain: "espresso" },
+      // Legal
+      { keywords: ["lawsuit","court case","legal","attorney","litigation","settlement","verdict","judge","plaintiff","defendant"], domain: "legal case" },
+      // History
+      { keywords: ["world war","ww2","wwii","nazi","hitler","d-day","allied","axis powers","hiroshima"], domain: "world war 2" },
+      // Arts
+      { keywords: ["film","movie","cinema","screenplay","director","production","cinematography","editing","post production"], domain: "film making" },
+      { keywords: ["content creation","youtube","social media","blogging","influencer","video production","podcast"], domain: "content creation" },
+      // Engineering
+      { keywords: ["product design","ux","user experience","wireframe","prototype","usability test","figma","design system"], domain: "product design" },
+      // Water & environment
+      { keywords: ["water cycle","evaporation","precipitation","condensation","rain","hydrological"], domain: "water cycle" },
+      // Authentication
+      { keywords: ["login","authentication","password","sign in","oauth","jwt","session","2fa","two factor"], domain: "user login" },
+      // Life cycle
+      { keywords: ["birth","death","life cycle","lifespan","human life","aging"], domain: "birth" },
+      // Additions
+      { keywords: ["addition","sum","arithmetic","calculator","math program"], domain: "addition" }
+    ];
+
+    /* DOM ELEMENTS */
+    const canvasContainer = document.getElementById('canvasContainer');
+    const flowViewport = document.getElementById('flowViewport');
+    const connectorSvg = document.getElementById('connectorSvg');
+    const pathsGroup = document.getElementById('pathsGroup');
+    const nodesLayer = document.getElementById('nodesLayer');
+    
+    const promptInput = document.getElementById('promptInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const themeSelect = document.getElementById('themeSelect');
+    
+    const zoomText = document.getElementById('zoomText');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const resetViewBtn = document.getElementById('resetViewBtn');
+
+    const layoutVertical = document.getElementById('layoutVertical');
+    const layoutHorizontal = document.getElementById('layoutHorizontal');
+
+    const tabPromptBtn = document.getElementById('tabPromptBtn');
+    const tabInspectorBtn = document.getElementById('tabInspectorBtn');
+    const tabPromptContent = document.getElementById('tabPromptContent');
+    const tabInspectorContent = document.getElementById('tabInspectorContent');
+
+    const inspectorEmptyState = document.getElementById('inspectorEmptyState');
+    const inspectorForm = document.getElementById('inspectorForm');
+    const nodeTitleInput = document.getElementById('nodeTitleInput');
+    const nodeDescInput = document.getElementById('nodeDescInput');
+    const addChildNodeBtn = document.getElementById('addChildNodeBtn');
+    const deleteNodeBtn = document.getElementById('deleteNodeBtn');
+
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+    const addNodeGlobalBtn = document.getElementById('addNodeGlobalBtn');
+    const exportSvgBtn = document.getElementById('exportSvgBtn');
+    const exportPngBtn = document.getElementById('exportPngBtn');
+
+    /* ==========================================================================
+       INITIALIZATION
+       ========================================================================== */
+    function init() {
+      // Load initial default flowchart
+      parsePromptAndGenerate("Explain how online food delivery works");
+      setupEventListeners();
+      updateViewportTransform();
+      saveHistory();
+    }
+
+    /* ==========================================================================
+       PROMPT PARSER & FLOWCHART GENERATOR
+       ========================================================================== */
+    function parsePromptAndGenerate(promptText) {
+      if (!promptText.trim()) return;
+
+      // Show loading state
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...';
+
+      // Slight delay for UX breathing room
+      setTimeout(() => {
+        let rawNodes = [];
+        const lowerPrompt = promptText.trim().toLowerCase();
+
+        // Step 1: Check DOMAIN_TEMPLATES direct key match
+        let matchedKey = Object.keys(DOMAIN_TEMPLATES).find(k => lowerPrompt.includes(k));
+
+        if (matchedKey) {
+          rawNodes = JSON.parse(JSON.stringify(DOMAIN_TEMPLATES[matchedKey]));
+        } else {
+          // Step 2: Full AI classifier + smart fallback
+          rawNodes = parseCustomTextToNodes(promptText);
+        }
+
+        // Convert raw nodes into positioned node objects & edges
+        buildGraphFromRawNodes(rawNodes);
+        showToast("✨ Flowchart generated successfully!");
+
+        // Reset button
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Generate Flowchart';
+      }, 400);
+    }
+
+    /* ==========================================================================
+       UNIVERSAL TOPIC CLASSIFIER & SMART FLOW GENERATOR
+       Uses domain classifier + keyword NLP + smart fallback decomposer
+       ========================================================================== */
+    function parseCustomTextToNodes(text) {
+      let cleanText = text.trim();
+      let lower = cleanText.toLowerCase();
+
+      // --- Step 1: Domain classification via keyword matching ---
+      let bestDomain = null;
+      let bestScore = 0;
+
+      for (const classifier of DOMAIN_CLASSIFIERS) {
+        let score = 0;
+        for (const kw of classifier.keywords) {
+          if (lower.includes(kw)) score += kw.split(' ').length; // weight multi-word matches
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          bestDomain = classifier.domain;
+        }
+      }
+
+      if (bestDomain && DOMAIN_TEMPLATES[bestDomain] && bestScore >= 1) {
+        return JSON.parse(JSON.stringify(DOMAIN_TEMPLATES[bestDomain]));
+      }
+
+      // --- Step 2: Semantic intent detection for generic lifecycle / how-things-work topics ---
+
+      // Lifecycle pattern: "life of X", "journey of X", "X from start to end"
+      if (/\blife\b|\blifecycle\b|\bjourney\b|\bevolution\b|\bbirth.*death\b|\bgrowth.*decay\b|from\s+\w+\s+to\s+\w+/i.test(lower)) {
+        const topicName = cleanText.replace(/^(flowchart (of|for|about)|show|create|explain|map|how to|life of|life cycle of|journey of)\s+/i, '').replace(/[?!.]+$/, '');
+        return [
+          { title: `Origin / Birth of ${topicName}`, desc: `Initial stage and creation`, type: "start" },
+          { title: `Early Development`, desc: `Foundational growth & early milestones of ${topicName}`, type: "process" },
+          { title: `Growth Phase`, desc: `Rapid expansion, learning & increasing capability`, type: "process" },
+          { title: `Critical Milestone Reached?`, desc: `Evaluate if key objectives are achieved`, type: "decision", branches: { yes: "Peak Performance & Maturity", no: "Iterate & Re-attempt" } },
+          { title: "Iterate & Re-attempt", desc: "Adjust strategy and try again", type: "process" },
+          { title: `Peak Performance & Maturity`, desc: `Maximum output and stability achieved`, type: "process" },
+          { title: `Decline or Transition?`, desc: `Is the entity aging, evolving or transforming?`, type: "decision", branches: { yes: "Transition / Reinvention", no: "Maintain & Sustain" } },
+          { title: "Transition / Reinvention", desc: "Transform into next phase or successor", type: "process" },
+          { title: `End / Legacy of ${topicName}`, desc: `Conclusion, impact and lasting legacy`, type: "end" }
+        ];
+      }
+
+      // How does X work? / Explain X / What is X?
+      const howItWorks = /^(how (does|do|is)|explain|what is|describe|show me how|tell me about|walk me through|break down|illustrate)/i.test(lower);
+      const topicExtracted = cleanText
+        .replace(/^(how (does|do|is)|explain|what is|describe|show me how|tell me about|walk me through|break down|illustrate|flowchart (of|for|about)|create a flowchart|make a flowchart)\s+/i, '')
+        .replace(/[?!.]+$/, '')
+        .trim() || cleanText;
+
+      if (howItWorks || cleanText.split(' ').length <= 4) {
+        // Generate a smart, contextual generic workflow
+        return generateGenericWorkflow(topicExtracted);
+      }
+
+      // --- Step 3: Multi-line / step-by-step input parsing ---
+      let lines = cleanText
+        .split(/[\n;]|->|=>|\b(?:then|next|after that|finally)\b/i)
+        .map(s => s.replace(/^[\d]+[\.\)]\s*/, '').trim())
+        .filter(s => s.length > 2);
+
+      if (lines.length >= 3) {
+        // User provided explicit steps — respect them
+        return lines.map((line, idx) => {
+          const isDecision = line.includes('?') || /^(if|check|verify|is|whether|are|does|should|can|will)\b/i.test(line);
+          const isIO = /^(input|read|enter|display|output|print|gather|receive|send|show|return)\b/i.test(line);
+          let type = idx === 0 ? 'start' : (idx === lines.length - 1 && !isDecision ? 'end' : (isDecision ? 'decision' : (isIO ? 'output' : 'process')));
+          const node = {
+            title: line,
+            desc: isDecision ? 'Evaluate condition & branch' : (type === 'start' ? 'Begin process' : `Step ${idx + 1}`),
+            type
+          };
+          if (isDecision) node.branches = { yes: 'Proceed with Yes Path', no: 'Handle No / Fallback' };
+          return node;
+        });
+      }
+
+      // --- Step 4: Full generic workflow fallback ---
+      return generateGenericWorkflow(topicExtracted);
+    }
+
+    /* Generates a rich, contextual generic workflow for any topic */
+    function generateGenericWorkflow(topic) {
+      const T = topic.charAt(0).toUpperCase() + topic.slice(1);
+      // Detect domain hints for smarter descriptions
+      const t = topic.toLowerCase();
+      const isTech = /software|app|system|code|program|compute|data|digital|server|network|database/i.test(t);
+      const isBio = /animal|plant|organism|body|cell|gene|organ|species|virus|bacteria|protein/i.test(t);
+      const isProcess = /process|workflow|procedure|method|approach|technique|practice/i.test(t);
+      const isProduct = /product|service|item|good|commodity|manufacture|build|create/i.test(t);
+
+      if (isTech) {
+        return [
+          { title: `Initialize ${T} System`, desc: `Configure environment, dependencies & parameters`, type: "start" },
+          { title: `Receive Input Data`, desc: `Capture user request or data stream`, type: "output" },
+          { title: `Validate & Preprocess`, desc: `Sanitize, normalize & validate input`, type: "process" },
+          { title: `Input Valid?`, desc: `Check format, range & integrity`, type: "decision", branches: { yes: `Core ${T} Processing`, no: "Return Error Response" } },
+          { title: "Return Error Response", desc: "Log error, notify user & exit gracefully", type: "process" },
+          { title: `Core ${T} Processing`, desc: `Execute main business logic & algorithms`, type: "process" },
+          { title: `Processing Successful?`, desc: `Verify output meets expected criteria`, type: "decision", branches: { yes: "Format & Return Output", no: "Retry or Escalate" } },
+          { title: "Retry or Escalate", desc: "Apply fallback logic or alert on-call team", type: "process" },
+          { title: `Format & Return Output`, desc: `Serialize response & deliver to consumer`, type: "output" },
+          { title: `${T} Complete`, desc: `Log success metrics & update state`, type: "end" }
+        ];
+      }
+
+      if (isBio) {
+        return [
+          { title: `${T} Initial State`, desc: `Starting biological condition or environment`, type: "start" },
+          { title: `Environmental Stimulus`, desc: `External trigger or internal signal received`, type: "process" },
+          { title: `Response Mechanism Activated?`, desc: `Check if organism/cell responds to stimulus`, type: "decision", branches: { yes: "Biological Response", no: "Dormant / No Response" } },
+          { title: "Biological Response", desc: `Cellular, molecular or physiological reaction`, type: "process" },
+          { title: `Adaptation & Regulation`, desc: `Homeostasis or genetic regulation mechanism`, type: "process" },
+          { title: `Successful Adaptation?`, desc: `Evaluate if the response was effective`, type: "decision", branches: { yes: "Growth & Reproduction", no: "Cell Death or Mutation" } },
+          { title: `Growth & Reproduction`, desc: `Successful propagation of ${T}`, type: "process" },
+          { title: `${T} Lifecycle Complete`, desc: `Full biological cycle concluded`, type: "end" }
+        ];
+      }
+
+      if (isProduct) {
+        return [
+          { title: `${T} Design & Specification`, desc: `Define requirements, materials & production plan`, type: "start" },
+          { title: `Source Raw Materials`, desc: `Procure inputs from qualified suppliers`, type: "process" },
+          { title: `Materials Available & Qualified?`, desc: `Inspect quality & quantity checks`, type: "decision", branches: { yes: "Manufacturing / Production", no: "Source Alternative Supplier" } },
+          { title: "Source Alternative Supplier", desc: "Find & qualify backup vendor", type: "process" },
+          { title: `Manufacturing / Production`, desc: `Transform materials into finished ${T}`, type: "process" },
+          { title: `Quality Control Inspection`, desc: `Test against specifications & tolerances`, type: "decision", branches: { yes: "Package & Label", no: "Rework or Reject" } },
+          { title: "Rework or Reject", desc: "Return to production or scrap non-conforming units", type: "process" },
+          { title: `Package & Label`, desc: `Prepare ${T} for storage & distribution`, type: "process" },
+          { title: `Distribute to Customers`, desc: `Ship via logistics network to end users`, type: "end" }
+        ];
+      }
+
+      // Universal generic workflow
+      return [
+        { title: `Start: ${T}`, desc: `Initiate the ${topic} process`, type: "start" },
+        { title: `Gather Requirements & Inputs`, desc: `Collect all necessary information & resources`, type: "output" },
+        { title: `Plan & Prepare`, desc: `Create an action plan with clear milestones`, type: "process" },
+        { title: `Prerequisites Ready?`, desc: `Verify all conditions are met to proceed`, type: "decision", branches: { yes: `Execute ${T}`, no: "Resolve Blockers" } },
+        { title: "Resolve Blockers", desc: "Address missing resources or dependencies", type: "process" },
+        { title: `Execute ${T}`, desc: `Perform the main activities of the process`, type: "process" },
+        { title: `Monitor & Track Progress`, desc: `Track KPIs, milestones & quality metrics`, type: "process" },
+        { title: `Quality Check Passed?`, desc: `Evaluate output against acceptance criteria`, type: "decision", branches: { yes: `Finalize & Deliver`, no: "Identify & Fix Issues" } },
+        { title: "Identify & Fix Issues", desc: "Root cause analysis & corrective actions", type: "process" },
+        { title: `Finalize & Deliver`, desc: `Complete ${topic} and deliver to stakeholders`, type: "process" },
+        { title: `Review & Document Lessons Learned`, desc: `Retrospective & knowledge capture`, type: "end" }
+      ];
+    }
+
+
+
+    function buildGraphFromRawNodes(rawNodes) {
+      state.nodes = [];
+      state.edges = [];
+      
+      const isVertical = state.layoutOrientation === 'vertical';
+      const startX = 250;
+      const startY = 100;
+      const stepGap = isVertical ? 140 : 260;
+
+      let idMap = new Map();
+
+      rawNodes.forEach((raw, idx) => {
+        const id = 'node_' + Date.now() + '_' + idx;
+        idMap.set(idx, id);
+
+        let nodeX = isVertical ? startX : startX + (idx * stepGap);
+        let nodeY = isVertical ? startY + (idx * stepGap) : startY;
+
+        let nodeObj = {
+          id: id,
+          title: raw.title,
+          desc: raw.desc || '',
+          type: raw.type || 'process',
+          x: nodeX,
+          y: nodeY,
+          width: raw.type === 'decision' ? 220 : 200,
+          height: raw.type === 'decision' ? 140 : 80
+        };
+
+        state.nodes.push(nodeObj);
+
+        // Add standard sequential edge
+        if (idx > 0) {
+          state.edges.push({
+            id: 'edge_' + Date.now() + '_' + idx,
+            from: idMap.get(idx - 1),
+            to: id,
+            label: rawNodes[idx - 1].type === 'decision' ? 'Yes' : ''
+          });
+        }
+
+        // If decision has a fallback branch, create a side node
+        if (raw.branches && raw.branches.no) {
+          const sideId = 'node_branch_' + Date.now() + '_' + idx;
+          let sideX = isVertical ? nodeX + 280 : nodeX;
+          let sideY = isVertical ? nodeY : nodeY + 180;
+
+          state.nodes.push({
+            id: sideId,
+            title: raw.branches.no,
+            desc: "Alternative flow path",
+            type: 'process',
+            x: sideX,
+            y: sideY,
+            width: 200,
+            height: 80
+          });
+
+          state.edges.push({
+            id: 'edge_no_' + Date.now() + '_' + idx,
+            from: id,
+            to: sideId,
+            label: 'No'
+          });
+        }
+      });
+
+      renderFlowchart();
+      saveHistory();
+    }
+
+    /* ==========================================================================
+       RENDERER (NODES & SVG CONNECTORS)
+       ========================================================================== */
+    function renderFlowchart() {
+      // Clear container layers
+      nodesLayer.innerHTML = '';
+      pathsGroup.innerHTML = '';
+
+      // Render Nodes
+      state.nodes.forEach(node => {
+        const nodeEl = document.createElement('div');
+        nodeEl.className = `flow-node node-type-${node.type} ${state.selectedNodeId === node.id ? 'selected' : ''}`;
+        nodeEl.style.left = `${node.x}px`;
+        nodeEl.style.top = `${node.y}px`;
+        nodeEl.dataset.id = node.id;
+
+        nodeEl.innerHTML = `
+          <div class="node-quick-actions">
+            <button class="quick-btn add-child" title="Add Step"><i class="fa-solid fa-plus"></i></button>
+            <button class="quick-btn delete-node" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <div class="node-header">
+            <span class="node-badge">${node.type}</span>
+          </div>
+          <div class="node-title" contenteditable="true" spellcheck="false">${escapeHtml(node.title)}</div>
+          ${node.desc ? `<div class="node-desc" contenteditable="true" spellcheck="false">${escapeHtml(node.desc)}</div>` : ''}
+        `;
+
+        // Attach Node Event Listeners
+        nodeEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectNode(node.id);
+        });
+
+        // Drag Handler
+        setupNodeDragging(nodeEl, node);
+
+        // Inline Text Editing
+        const titleEl = nodeEl.querySelector('.node-title');
+        titleEl.addEventListener('blur', () => {
+          node.title = titleEl.innerText;
+          saveHistory();
+        });
+
+        const descEl = nodeEl.querySelector('.node-desc');
+        if (descEl) {
+          descEl.addEventListener('blur', () => {
+            node.desc = descEl.innerText;
+            saveHistory();
+          });
+        }
+
+        // Quick action buttons
+        nodeEl.querySelector('.add-child').addEventListener('click', (e) => {
+          e.stopPropagation();
+          addChildNode(node.id);
+        });
+
+        nodeEl.querySelector('.delete-node').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteNode(node.id);
+        });
+
+        nodesLayer.appendChild(nodeEl);
+      });
+
+      // Render Connectors / Edges
+      state.edges.forEach(edge => {
+        const fromNode = state.nodes.find(n => n.id === edge.from);
+        const toNode = state.nodes.find(n => n.id === edge.to);
+
+        if (fromNode && toNode) {
+          drawConnector(edge, fromNode, toNode);
+        }
+      });
+    }
+
+    function drawConnector(edge, fromNode, toNode) {
+      // Calculate connection anchors
+      const fromCenter = { x: fromNode.x + fromNode.width / 2, y: fromNode.y + fromNode.height / 2 };
+      const toCenter = { x: toNode.x + toNode.width / 2, y: toNode.y + toNode.height / 2 };
+
+      // Determine path points based on relative positions
+      let startX = fromCenter.x;
+      let startY = fromNode.y + fromNode.height;
+      let endX = toCenter.x;
+      let endY = toNode.y;
+
+      if (Math.abs(fromCenter.x - toCenter.x) > Math.abs(fromCenter.y - toCenter.y)) {
+        // Horizontal connection
+        startX = fromNode.x + (toCenter.x > fromCenter.x ? fromNode.width : 0);
+        startY = fromCenter.y;
+        endX = toNode.x + (toCenter.x > fromCenter.x ? 0 : toNode.width);
+        endY = toCenter.y;
+      }
+
+      // Smooth Bezier Curve Control Points
+      const dy = Math.abs(endY - startY) * 0.5;
+
+      let pathD = "";
+      if (Math.abs(startX - endX) < 10) {
+        // Straight vertical
+        pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+      } else {
+        pathD = `M ${startX} ${startY} C ${startX} ${startY + dy}, ${endX} ${endY - dy}, ${endX} ${endY}`;
+      }
+
+      // Draw SVG Path
+      const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      pathEl.setAttribute('d', pathD);
+      pathEl.setAttribute('class', 'connector-path');
+      pathEl.setAttribute('marker-end', 'url(#arrowhead)');
+      pathsGroup.appendChild(pathEl);
+
+      // Draw Edge Label (e.g. Yes / No)
+      if (edge.label) {
+        const midX = (startX + endX) / 2;
+        const midY = (startY + endY) / 2;
+
+        const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textEl.setAttribute('x', midX);
+        textEl.setAttribute('y', midY - 6);
+        textEl.setAttribute('class', 'connector-label');
+        textEl.textContent = edge.label;
+        pathsGroup.appendChild(textEl);
+      }
+    }
+
+    /* ==========================================================================
+       DRAG & DROP NODE INTERACTION
+       ========================================================================== */
+    function setupNodeDragging(nodeEl, node) {
+      let isDragging = false;
+      let startMouseX, startMouseY;
+      let initialNodeX, initialNodeY;
+
+      nodeEl.addEventListener('mousedown', (e) => {
+        if (e.target.isContentEditable) return;
+
+        isDragging = true;
+        startMouseX = e.clientX;
+        startMouseY = e.clientY;
+        initialNodeX = node.x;
+        initialNodeY = node.y;
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+
+      function onMouseMove(e) {
+        if (!isDragging) return;
+        const dx = (e.clientX - startMouseX) / state.zoom;
+        const dy = (e.clientY - startMouseY) / state.zoom;
+
+        node.x = initialNodeX + dx;
+        node.y = initialNodeY + dy;
+
+        nodeEl.style.left = `${node.x}px`;
+        nodeEl.style.top = `${node.y}px`;
+
+        // Live update connector lines
+        renderConnectorsOnly();
+      }
+
+      function onMouseUp() {
+        if (isDragging) {
+          isDragging = false;
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          saveHistory();
+        }
+      }
+    }
+
+    function renderConnectorsOnly() {
+      pathsGroup.innerHTML = '';
+      state.edges.forEach(edge => {
+        const fromNode = state.nodes.find(n => n.id === edge.from);
+        const toNode = state.nodes.find(n => n.id === edge.to);
+        if (fromNode && toNode) drawConnector(edge, fromNode, toNode);
+      });
+    }
+
+    /* ==========================================================================
+       PAN & ZOOM CONTROLS
+       ========================================================================== */
+    let isPanning = false;
+    let panStartX, panStartY;
+
+    canvasContainer.addEventListener('mousedown', (e) => {
+      if (e.target === canvasContainer || e.target === flowViewport || e.target.tagName === 'svg') {
+        isPanning = true;
+        canvasContainer.classList.add('panning');
+        panStartX = e.clientX - state.panX;
+        panStartY = e.clientY - state.panY;
+        deselectNode();
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      state.panX = e.clientX - panStartX;
+      state.panY = e.clientY - panStartY;
+      updateViewportTransform();
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isPanning) {
+        isPanning = false;
+        canvasContainer.classList.remove('panning');
+      }
+    });
+
+    canvasContainer.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+      const newZoom = Math.min(Math.max(0.3, state.zoom * zoomFactor), 2.5);
+      
+      state.zoom = newZoom;
+      zoomText.textContent = `${Math.round(state.zoom * 100)}%`;
+      updateViewportTransform();
+    });
+
+    function updateViewportTransform() {
+      flowViewport.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+    }
+
+    /* ==========================================================================
+       NODE INSPECTOR & ACTIONS
+       ========================================================================== */
+    function selectNode(id) {
+      state.selectedNodeId = id;
+      renderFlowchart();
+
+      const node = state.nodes.find(n => n.id === id);
+      if (node) {
+        inspectorEmptyState.style.display = 'none';
+        inspectorForm.style.display = 'flex';
+
+        nodeTitleInput.value = node.title;
+        nodeDescInput.value = node.desc || '';
+
+        // Switch to Inspector Tab automatically
+        switchTab('inspector');
+
+        // Highlight active type button
+        document.querySelectorAll('.type-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.type === node.type);
+        });
+      }
+    }
+
+    function deselectNode() {
+      state.selectedNodeId = null;
+      inspectorEmptyState.style.display = 'block';
+      inspectorForm.style.display = 'none';
+      renderFlowchart();
+    }
+
+    function addChildNode(parentId) {
+      const parentNode = state.nodes.find(n => n.id === parentId);
+      if (!parentNode) return;
+
+      const newId = 'node_' + Date.now();
+      const offset = state.layoutOrientation === 'vertical' ? { x: 0, y: 140 } : { x: 240, y: 0 };
+
+      const newNode = {
+        id: newId,
+        title: "New Action Step",
+        desc: "Specify step details",
+        type: "process",
+        x: parentNode.x + offset.x,
+        y: parentNode.y + offset.y,
+        width: 200,
+        height: 80
+      };
+
+      state.nodes.push(newNode);
+      state.edges.push({
+        id: 'edge_' + Date.now(),
+        from: parentId,
+        to: newId,
+        label: parentNode.type === 'decision' ? 'Yes' : ''
+      });
+
+      selectNode(newId);
+      saveHistory();
+    }
+
+    function deleteNode(id) {
+      state.nodes = state.nodes.filter(n => n.id !== id);
+      state.edges = state.edges.filter(e => e.from !== id && e.to !== id);
+      deselectNode();
+      saveHistory();
+    }
+
+    /* ==========================================================================
+       EVENT LISTENERS & HANDLERS
+       ========================================================================== */
+    function setupEventListeners() {
+      // Mobile sidebar toggle
+      const mobileToggle = document.getElementById('mobileToggle');
+      const appSidebar = document.getElementById('appSidebar');
+      if (mobileToggle) {
+        mobileToggle.addEventListener('click', () => {
+          appSidebar.classList.toggle('open');
+        });
+      }
+
+      // Generate button click
+      generateBtn.addEventListener('click', () => {
+        parsePromptAndGenerate(promptInput.value);
+      });
+
+      // Example prompt chips
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const prompt = chip.dataset.prompt;
+          promptInput.value = prompt;
+          parsePromptAndGenerate(prompt);
+        });
+      });
+
+      // Theme switcher
+      themeSelect.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        document.body.setAttribute('data-theme', theme);
+        state.theme = theme;
+      });
+
+      // Layout direction toggle
+      layoutVertical.addEventListener('click', () => {
+        layoutVertical.classList.add('active');
+        layoutHorizontal.classList.remove('active');
+        state.layoutOrientation = 'vertical';
+        autoReLayout();
+      });
+
+      layoutHorizontal.addEventListener('click', () => {
+        layoutHorizontal.classList.add('active');
+        layoutVertical.classList.remove('active');
+        state.layoutOrientation = 'horizontal';
+        autoReLayout();
+      });
+
+      // Zoom Buttons
+      zoomInBtn.addEventListener('click', () => {
+        state.zoom = Math.min(2.5, state.zoom + 0.15);
+        zoomText.textContent = `${Math.round(state.zoom * 100)}%`;
+        updateViewportTransform();
+      });
+
+      zoomOutBtn.addEventListener('click', () => {
+        state.zoom = Math.max(0.3, state.zoom - 0.15);
+        zoomText.textContent = `${Math.round(state.zoom * 100)}%`;
+        updateViewportTransform();
+      });
+
+      resetViewBtn.addEventListener('click', () => {
+        state.zoom = 1;
+        state.panX = 50;
+        state.panY = 50;
+        zoomText.textContent = `100%`;
+        updateViewportTransform();
+      });
+
+      // Tab switcher
+      tabPromptBtn.addEventListener('click', () => switchTab('prompt'));
+      tabInspectorBtn.addEventListener('click', () => switchTab('inspector'));
+
+      // Node Inspector Form inputs
+      nodeTitleInput.addEventListener('input', (e) => {
+        if (state.selectedNodeId) {
+          const node = state.nodes.find(n => n.id === state.selectedNodeId);
+          if (node) {
+            node.title = e.target.value;
+            renderFlowchart();
+          }
+        }
+      });
+
+      nodeDescInput.addEventListener('input', (e) => {
+        if (state.selectedNodeId) {
+          const node = state.nodes.find(n => n.id === state.selectedNodeId);
+          if (node) {
+            node.desc = e.target.value;
+            renderFlowchart();
+          }
+        }
+      });
+
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (state.selectedNodeId) {
+            const node = state.nodes.find(n => n.id === state.selectedNodeId);
+            if (node) {
+              node.type = btn.dataset.type;
+              document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              renderFlowchart();
+              saveHistory();
+            }
+          }
+        });
+      });
+
+      addChildNodeBtn.addEventListener('click', () => {
+        if (state.selectedNodeId) addChildNode(state.selectedNodeId);
+      });
+
+      deleteNodeBtn.addEventListener('click', () => {
+        if (state.selectedNodeId) deleteNode(state.selectedNodeId);
+      });
+
+      // Global Action Buttons
+      addNodeGlobalBtn.addEventListener('click', () => {
+        const newId = 'node_' + Date.now();
+        state.nodes.push({
+          id: newId,
+          title: "Custom Step",
+          desc: "Description here",
+          type: "process",
+          x: 300,
+          y: 200,
+          width: 200,
+          height: 80
+        });
+        selectNode(newId);
+        saveHistory();
+      });
+
+      clearCanvasBtn.addEventListener('click', () => {
+        if (confirm("Are you sure you want to clear the canvas?")) {
+          state.nodes = [];
+          state.edges = [];
+          deselectNode();
+          saveHistory();
+        }
+      });
+
+      // Undo / Redo
+      undoBtn.addEventListener('click', undo);
+      redoBtn.addEventListener('click', redo);
+
+      // Exports
+      exportSvgBtn.addEventListener('click', exportSVG);
+      exportPngBtn.addEventListener('click', exportPNG);
+
+      // Keyboard Shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+          e.preventDefault();
+          undo();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+          e.preventDefault();
+          redo();
+        } else if (e.key === 'Delete' || e.key === 'Backspace') {
+          if (state.selectedNodeId) {
+            deleteNode(state.selectedNodeId);
+          }
+        }
+      });
+    }
+
+    function switchTab(tab) {
+      if (tab === 'prompt') {
+        tabPromptBtn.classList.add('active');
+        tabInspectorBtn.classList.remove('active');
+        tabPromptContent.style.display = 'block';
+        tabInspectorContent.style.display = 'none';
+      } else {
+        tabInspectorBtn.classList.add('active');
+        tabPromptBtn.classList.remove('active');
+        tabInspectorContent.style.display = 'block';
+        tabPromptContent.style.display = 'none';
+      }
+    }
+
+    function autoReLayout() {
+      const isVert = state.layoutOrientation === 'vertical';
+      let gap = isVert ? 150 : 250;
+
+      state.nodes.forEach((node, idx) => {
+        node.x = isVert ? 250 : 100 + (idx * gap);
+        node.y = isVert ? 100 + (idx * gap) : 150;
+      });
+
+      renderFlowchart();
+      saveHistory();
+    }
+
+    /* ==========================================================================
+       HISTORY UNDO / REDO
+       ========================================================================== */
+    function saveHistory() {
+      // Truncate redo stack
+      state.history = state.history.slice(0, state.historyIndex + 1);
+      
+      const snapshot = JSON.stringify({
+        nodes: state.nodes,
+        edges: state.edges
+      });
+
+      state.history.push(snapshot);
+      state.historyIndex = state.history.length - 1;
+    }
+
+    function undo() {
+      if (state.historyIndex > 0) {
+        state.historyIndex--;
+        restoreSnapshot(state.history[state.historyIndex]);
+      }
+    }
+
+    function redo() {
+      if (state.historyIndex < state.history.length - 1) {
+        state.historyIndex++;
+        restoreSnapshot(state.history[state.historyIndex]);
+      }
+    }
+
+    function restoreSnapshot(snapshotStr) {
+      const data = JSON.parse(snapshotStr);
+      state.nodes = data.nodes;
+      state.edges = data.edges;
+      renderFlowchart();
+    }
+
+    /* ==========================================================================
+       EXPORT CAPABILITIES (SVG & PNG)
+       ========================================================================== */
+    function exportSVG() {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      state.nodes.forEach(n => {
+        minX = Math.min(minX, n.x);
+        minY = Math.min(minY, n.y);
+        maxX = Math.max(maxX, n.x + n.width);
+        maxY = Math.max(maxY, n.y + n.height);
+      });
+
+      const padding = 60;
+      minX = Math.max(0, minX - padding);
+      minY = Math.max(0, minY - padding);
+      const width = (maxX - minX) + padding * 2;
+      const height = (maxY - minY) + padding * 2;
+
+      let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}" height="${height}" style="background-color: #090d16; font-family: sans-serif;">`;
+      
+      // Embed markers
+      svgContent += `
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+          </marker>
+        </defs>
+      `;
+
+      // Edges
+      state.edges.forEach(e => {
+        const from = state.nodes.find(n => n.id === e.from);
+        const to = state.nodes.find(n => n.id === e.to);
+        if (from && to) {
+          const fx = from.x + from.width/2;
+          const fy = from.y + from.height;
+          const tx = to.x + to.width/2;
+          const ty = to.y;
+          svgContent += `<path d="M ${fx} ${fy} L ${tx} ${ty}" stroke="#64748b" stroke-width="2.5" fill="none" marker-end="url(#arrow)" />`;
+          if (e.label) {
+            svgContent += `<text x="${(fx+tx)/2}" y="${(fy+ty)/2 - 5}" fill="#94a3b8" font-size="12" text-anchor="middle">${e.label}</text>`;
+          }
+        }
+      });
+
+      // Nodes
+      state.nodes.forEach(n => {
+        let fill = "#1e293b";
+        let stroke = "#64748b";
+        if (n.type === 'start') { fill = "#0284c7"; stroke = "#38bdf8"; }
+        else if (n.type === 'decision') { fill = "#7c3aed"; stroke = "#e879f9"; }
+        else if (n.type === 'end') { fill = "#e11d48"; stroke = "#fda4af"; }
+
+        svgContent += `
+          <g transform="translate(${n.x}, ${n.y})">
+            <rect width="${n.width}" height="${n.height}" rx="12" fill="${fill}" stroke="${stroke}" stroke-width="2" />
+            <text x="${n.width/2}" y="${n.height/2 - 4}" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">${escapeHtml(n.title)}</text>
+            ${n.desc ? `<text x="${n.width/2}" y="${n.height/2 + 14}" fill="#cbd5e1" font-size="11" text-anchor="middle">${escapeHtml(n.desc)}</text>` : ''}
+          </g>
+        `;
+      });
+
+      svgContent += `</svg>`;
+
+      downloadFile("flowspark-diagram.svg", "image/svg+xml;charset=utf-8", svgContent);
+      showToast("SVG Exported!");
+    }
+
+    function exportPNG() {
+      // Create offscreen canvas for crisp raster generation
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      state.nodes.forEach(n => {
+        minX = Math.min(minX, n.x);
+        minY = Math.min(minY, n.y);
+        maxX = Math.max(maxX, n.x + n.width);
+        maxY = Math.max(maxY, n.y + n.height);
+      });
+
+      const padding = 60;
+      minX = Math.max(0, minX - padding);
+      minY = Math.max(0, minY - padding);
+      const width = (maxX - minX) + padding * 2;
+      const height = (maxY - minY) + padding * 2;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw background
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, width, height);
+
+      // Translate coordinates
+      ctx.save();
+      ctx.translate(-minX, -minY);
+
+      // Draw Edges
+      state.edges.forEach(e => {
+        const from = state.nodes.find(n => n.id === e.from);
+        const to = state.nodes.find(n => n.id === e.to);
+        if (from && to) {
+          ctx.beginPath();
+          ctx.strokeStyle = '#64748b';
+          ctx.lineWidth = 3;
+          ctx.moveTo(from.x + from.width/2, from.y + from.height);
+          ctx.lineTo(to.x + to.width/2, to.y);
+          ctx.stroke();
+
+          if (e.label) {
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(e.label, (from.x + to.x)/2 + from.width/2, (from.y + to.y)/2 + 40);
+          }
+        }
+      });
+
+      // Draw Nodes
+      state.nodes.forEach(n => {
+        let fill = "#1e293b";
+        let stroke = "#64748b";
+        if (n.type === 'start') { fill = "#0284c7"; stroke = "#38bdf8"; }
+        else if (n.type === 'decision') { fill = "#7c3aed"; stroke = "#e879f9"; }
+        else if (n.type === 'end') { fill = "#e11d48"; stroke = "#fda4af"; }
+
+        // Draw rounded rectangle
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 2;
+        roundRect(ctx, n.x, n.y, n.width, n.height, 12, true, true);
+
+        // Draw Text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.title, n.x + n.width/2, n.y + n.height/2 - 4);
+
+        if (n.desc) {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '11px sans-serif';
+          ctx.fillText(n.desc, n.x + n.width/2, n.y + n.height/2 + 14);
+        }
+      });
+
+      ctx.restore();
+
+      const imageURI = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'flowspark-diagram.png';
+      link.href = imageURI;
+      link.click();
+
+      showToast("PNG Exported!");
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    /* UTILITY HELPERS */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text || '';
+      return div.innerHTML;
+    }
+
+    function downloadFile(filename, mimeType, content) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function showToast(message) {
+      const toastContainer = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> ${message}`;
+      toastContainer.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Initialize application on load
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
